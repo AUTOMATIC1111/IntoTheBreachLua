@@ -42,4 +42,4 @@ This library creates those lua functions for every lua VM in the game:
  - ```listdirs(dirname)``` - lists all directories inside directory dirname.
 
 
-   [Into the Breach]: <https://subsetgames.com/itb.html>`
+   [Into the Breach]: <https://subsetgames.com/itb.html>
