@@ -14,7 +14,7 @@ end
 
 function modApi:init()
 	--package.path = prev_path..package.path
-	self.version = "1.2.0"
+	self.version = "1.2.1"
 	LOG("MOD-API VERSION "..self.version)
 	self.currentModSquads = {}
 	self.currentModSquadText = {}
@@ -121,8 +121,76 @@ function modApi:resetModContent()
 	}
 	self.nextTurnHooks = {}
 	self.missionUpdateHooks = {}
+	self.missionStartHooks = {}
+	self.preMissionStartHooks = {}
 	self.currentModSquads = {}
 	self.currentModSquadText = {}
+	self.MissionEndHooks = {
+		--Pilot Message
+		function(mission,ret)
+			ret:AddScript([[local ret = SkillEffect()
+			local enemy_count = Board:GetEnemyCount()
+			if enemy_count == 0 then
+				ret:AddVoice("MissionEnd_Dead", -1)
+			elseif self.RetreatEndingMessage then
+				ret:AddVoice("MissionEnd_Retreat", -1)
+			end
+			Board:AddEffect(ret)]])
+		end,
+		
+		--Population Event
+		function(mission,ret)
+			ret:AddScript([[local ret = SkillEffect()
+			local enemy_count = Board:GetEnemyCount()
+			
+			if CurrentMission:GetDamage() == 0 then
+				ret:AddScript("Board:StartPopEvent(\"Closing_Perfect\")")
+			elseif CurrentMission:GetDamage() > 4 then
+				ret:AddScript("Board:StartPopEvent(\"Closing_Bad\")")
+			elseif enemy_count > 0 then
+				ret:AddScript("Board:StartPopEvent(\"Closing\")")
+			else
+				ret:AddScript("Board:StartPopEvent(\"Closing_Dead\")")
+			end
+			Board:AddEffect(ret)]])
+		end,
+		
+		--Enemy retreat
+		function(mission,ret)
+			ret:AddScript([[
+			local ret = SkillEffect()
+			local effect = SpaceDamage()
+			effect.bEvacuate = true
+			effect.fDelay = 0.5
+			
+			local board_size = Board:GetSize()
+			for i = 0, board_size.x - 1 do
+				for j = 0, board_size.y - 1  do
+					if Board:IsPawnTeam(Point(i,j),TEAM_ENEMY)  then
+						effect.loc = Point(i,j)
+						ret:AddDamage(effect)
+						CurrentMission.delayToAdd = CurrentMission.delayToAdd - 0.5
+					end
+				end
+			end
+			Board:AddEffect(ret)]])
+		end,
+		
+		--End Delay
+		function(mission,ret)
+			ret:AddScript([[local ret = SkillEffect()
+			--ret:AddDelay(CurrentMission:GetEndDelay())
+			Board:AddEffect(ret)]])
+		end,
+	}
+	self.iMePilotMessage = 1
+	self.iMePopEvent = 2
+	self.iMeRetreat = 3
+	self.iMeDelay = 4
+	
+	local name, tbl = debug.getupvalue(oldGetPopulationTexts,1)
+	self.PopEvents = copy_table(tbl)
+	self.onGetPopEvent = {}
 end
 
 function modApi:setCurrentMod(mod)
@@ -131,6 +199,7 @@ function modApi:setCurrentMod(mod)
 	self.currentModSquadText[mod] = {}
 end
 
+--The updated way to add squads
 function modApi:addSquadTrue(squad,name,desc,icon)
 	assert(type(squad) == "table")
 	assert(#squad == 4)
@@ -142,8 +211,12 @@ function modApi:addSquadTrue(squad,name,desc,icon)
 	table.insert(self.squad_icon,icon or "resources/mods/squads/unknown.png")
 end
 
---ONLY for compability with older mods. Using it is discouraged, it will likely get dropped in the future. Use addSquadTrue instead
-function modApi:addSquad(id,squad,icon)
+function modApi:addSquad(id,squad,desc,icon)
+	if type(id) == "table" and type(squad) == "string" and type(desc) == "string" then
+		return self:addSquadTrue(id,squad,desc)
+	end
+
+	--The old way to add squads
 	assert(id)
 	assert(type(squad) == "table")
 	assert(#squad == 4)
@@ -173,7 +246,6 @@ function modApi:overwriteTextTrue(id,str)
 	self.textOverrides[id] = str
 end
 
---ONLY for compability with older mods. Using it is discouraged, it will likely get dropped in the future. Use overwriteTextTrue instead
 function modApi:overwriteText(id,str)
 	assert(type(id) == "string")
 	assert(type(str) == "string")
@@ -224,6 +296,16 @@ function modApi:overwriteText(id,str)
 	self.textOverrides[id] = str
 end
 
+function modApi:addPreMissionEndHook(fn)
+	assert(type(fn) == "function")
+	table.insert(self.preMissionStartHooks,fn)
+end
+
+function modApi:addMissionStartHook(fn)
+	assert(type(fn) == "function")
+	table.insert(self.missionStartHooks,fn)
+end
+
 function modApi:addNextTurnHook(fn)
 	assert(type(fn) == "function")
 	table.insert(self.nextTurnHooks,fn)
@@ -234,11 +316,58 @@ function modApi:addMissionUpdateHook(fn)
 	table.insert(self.missionUpdateHooks,fn)
 end
 
+function modApi:addMissionEndHook(fn,i)
+	assert(type(fn) == "function")
+	if i ~= nil then
+		assert(type(i) == "number")
+		assert(i > 0)
+		assert(math.floor(i) == i)
+		table.insert(self.MissionEndHooks,i,fn)
+		if i <= self.iMePilotMessage then
+			self.iMePilotMessage = self.iMePilotMessage + 1
+		end
+		if i <= self.iMePopEvent then
+			self.iMePopEvent = self.iMePopEvent + 1
+		end
+		if i <= self.iMeRetreat then
+			self.iMeRetreat = self.iMeRetreat + 1
+		end
+		if i <= self.iMeDelay then
+			self.iMeDelay = self.iMeDelay + 1
+		end
+	else
+		table.insert(self.MissionEndHooks,fn)
+	end
+end
+
 function modApi:addWeapon_Texts(tbl)
 	assert(type(tbl) == "table")
 	for k,v in pairs(tbl) do
 		Weapon_Texts[k] = v
 	end
+end
+
+function modApi:addPopEvent(event,msg)
+	assert(type(event) == "string")
+	assert(type(msg) == "string")
+	if not self.PopEvents[event] then
+		self.PopEvents[event] = {}
+	end
+	
+	table.insert(self.PopEvents[event],msg)
+end
+
+function modApi:setPopEventOdds(event,odds)
+	assert(type(event) == "string")
+	assert(self.PopEvents[event])
+	assert(odds == nil or type(odds) == "number")
+	
+	self.PopEvents[event].Odds = odds
+end
+
+function modApi:addOnPopEvent(fn)
+	assert(type(fn) == "function")
+	table.insert(self.onGetPopEvent,fn)
 end
 
 function modApi:appendAsset(resource,filePath)

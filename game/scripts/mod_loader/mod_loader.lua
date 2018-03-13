@@ -23,21 +23,12 @@ function mod_loader:init()
 end
 
 function mod_loader:enumerateMods()
-	--A better way to iterate over folders in the mods folder would be nice
-	--Would probably need help from the C++ side though
-	
+
 	local modlist = listdirs("mods")
 	for key,value in pairs(modlist) do
 		table.insert(self.mod_dirs,value)
 	end
 
-	--for dir in io.popen([[dir ".\mods\" /b /ad]]):lines() do table.insert(self.mod_dirs,dir) end
-	--[[for file in lfs.dir("./mods") do
-        if file ~= "." and file ~= ".." then
-			table.insert(self.mod_dirs,dir)
-		end
-	end]]
-	
 	for i, dir in pairs(self.mod_dirs) do
 		local err = ""
 		local path = string.format("mods/%s/scripts/init.lua",dir)
@@ -338,7 +329,6 @@ function modApi:selectSquads()
 		end
 	end
 end
-
 
 modApi:init()
 mod_loader:init()

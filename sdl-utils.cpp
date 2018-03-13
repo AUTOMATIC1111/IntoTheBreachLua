@@ -381,7 +381,7 @@ void log(const std::string & line) {
 }
 
 bool isshiftdown() {
-	return GetAsyncKeyState(VK_SHIFT) & 0x8000 == 0x8000;
+	return (GetAsyncKeyState(VK_SHIFT) & 0x8000) == 0x8000;
 }
 
 Timer::Timer() {
