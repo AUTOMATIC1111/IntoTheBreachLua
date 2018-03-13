@@ -6,3 +6,5 @@
 Release/*
 Debug/*
 x64/*
+.vs/*
+error.txt

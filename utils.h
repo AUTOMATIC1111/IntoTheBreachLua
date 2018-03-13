@@ -6,10 +6,19 @@
 #include <assert.h>
 #include <windows.h>
 #include <string>
+#include <functional>
 
 int log(char *fmt, ...);
-int info(char *fmt, ...);
+int error(char *fmt, ...);
 
-std::string formatA(const char *fmt, ...);
+std::string format(const char *fmt, ...);
+std::string formatv(const char *fmt, va_list ap);
+
+std::wstring s2ws(const std::string& s);
+std::string ws2s(const std::wstring& s);
+std::wstring cs2ws(const char *s);
+std::string cws2s(const TCHAR *s);
+
+void listDir(const std::string & path, std::function<void(const std::string &s, bool isDir)>);
 
 #endif

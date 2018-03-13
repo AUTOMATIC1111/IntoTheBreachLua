@@ -14,18 +14,18 @@ Arguments are:
 Additionally, a static pointer to pointer to function is created when you use the macro, with name dll_<name> (it's named dll_lua_tolstring in example above), and it can be used to call the function from original dll like this:
 
 ```c
-    const char *myString = (*dll_lua_tolstring)(L, idx, len);
+const char *myString = (*dll_lua_tolstring)(L, idx, len);
 ```
 
 Here is example usage:
 ```c
-	HOOK(lua_tolstring, const char *, (lua_State *L, int idx, size_t *len)) {
-		// put your implementation here
-		log("lua_tolstring was called by the game!\n");
-	
-		// this is a call to lua_tolstring function from actual Lua dll.
-		return (*dll_lua_tolstring)(L, idx, len);
-	}
+HOOK(lua_tolstring, const char *, (lua_State *L, int idx, size_t *len)) {
+	// put your implementation here
+	log("lua_tolstring was called by the game!\n");
+
+	// this is a call to lua_tolstring function from actual Lua dll.
+	return (*dll_lua_tolstring)(L, idx, len);
+}
 ```
 
 By default, lua functions are exported using exports.def file with names like ```__E__102__```. Those functions are generated automatically and are implemented in ```lua5.1.cc```. When you use the ```HOOK``` macro to reimplement one of those functions, you have to remove corresponding line from ```exports.def```.

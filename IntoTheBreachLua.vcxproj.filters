@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="lua-functions.cc" />
+    <ClCompile Include="lua5.1.cc" />
+    <ClCompile Include="lua-hooks.cc" />
+    <ClCompile Include="utils.cc" />
+    <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="lua-functions.h" />
+    <ClInclude Include="lua5.1.h" />
+    <ClInclude Include="utils.h" />
+    <ClInclude Include="LuaBridge\detail\CFunctions.h">
+      <Filter>lua</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaBridge\detail\ClassInfo.h">
+      <Filter>lua</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaBridge\detail\Constructor.h">
+      <Filter>lua</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaBridge\detail\dump.h">
+      <Filter>lua</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaBridge\detail\FuncTraits.h">
+      <Filter>lua</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaBridge\detail\Iterator.h">
+      <Filter>lua</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaBridge\detail\LuaException.h">
+      <Filter>lua</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaBridge\detail\LuaHelpers.h">
+      <Filter>lua</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaBridge\detail\LuaRef.h">
+      <Filter>lua</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaBridge\detail\Namespace.h">
+      <Filter>lua</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaBridge\detail\Stack.h">
+      <Filter>lua</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaBridge\detail\TypeList.h">
+      <Filter>lua</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaBridge\detail\TypeTraits.h">
+      <Filter>lua</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaBridge\detail\Userdata.h">
+      <Filter>lua</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaBridge\LuaBridge.h">
+      <Filter>lua</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaBridge\RefCountedObject.h">
+      <Filter>lua</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaBridge\RefCountedPtr.h">
+      <Filter>lua</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="exports.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="lua">
+      <UniqueIdentifier>{c0bd254a-bd20-4c7f-a8fa-9fbd65a42cb5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
