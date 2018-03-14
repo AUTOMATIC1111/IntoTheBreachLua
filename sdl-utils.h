@@ -105,6 +105,7 @@ struct EventLoop {
 	bool next();
 	int type();
 
+	int mousebutton();
 	int x();
 	int y();
 

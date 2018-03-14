@@ -145,7 +145,9 @@ void installFunctions(lua_State *L) {
 		.addFunction("y", &SDL::EventLoop::y)
 		.addFunction("wheel", &SDL::EventLoop::wheely)
 		.addFunction("keycode", &SDL::EventLoop::keycode)
+		.addFunction("mousebutton", &SDL::EventLoop::mousebutton)
 		.endClass()
+
 
 		.beginClass <SDL::Rect>("rect")
 		.addConstructor <void(*) (int, int, int, int)>()

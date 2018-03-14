@@ -60,10 +60,22 @@ The ```eventloop:type()``` function returns a value that can be compared to any 
 sdl.events.quit -- user closed the game window
 sdl.events.keydown -- user pressed a button; call eventloop:keycode() to figure out which
 sdl.events.keyup -- user released a button
-sdl.events.mousebuttondown -- user pressed a mouse button
+sdl.events.mousebuttondown -- user pressed a mouse button; call eventloop:mousebutton() to know which one
 sdl.events.mousebuttonup -- user released a mouse button
 sdl.events.mousewheel -- user rotated a mouse wheel; call eventloop:wheel() to get direction
 ```
+
+Use [SDL Keycode Lookup Table](https://wiki.libsdl.org/SDLKeycodeLookup) with ```eventloop:keycode()``` to figure out which key was pressed/released.
+
+Mouse button codes are:
+
+| Mouse button  | ```eventloop:mousebutton()``` |
+|---------------|---|
+| Left          | 1 |
+| Middle        | 2 |
+| Right         | 3 |
+| X1            | 4 |
+| X2            | 5 |
 
 #### sdl.screen
 A helper class that lets you draw on game's screen.
@@ -148,10 +160,15 @@ end
 Shows default windows message box with text in it.
 
 #### listall(dirname)
-Lists all entries inside directory dirname.
+Non-recursively lists all entries inside directory dirname.
 
 #### listfiles(dirname)
-Lists all files inside directory dirname.
-
+Non-recursively lists all files inside directory dirname.
+```
+local modlist = listdirs("mods")
+for key,value in pairs(modlist) do
+	table.insert(self.mod_dirs,value)
+end
+```
 #### listdirs(dirname)
-Lists all directories inside directory dirname.
+Non-recursively lists all directories inside directory dirname.

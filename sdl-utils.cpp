@@ -342,6 +342,10 @@ int EventLoop::type() {
 	return event.type;
 }
 
+int EventLoop::mousebutton() {
+	return event.button.button;
+}
+
 int EventLoop::x() {
 	return event.motion.x;
 }
