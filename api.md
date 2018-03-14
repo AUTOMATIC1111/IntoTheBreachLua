@@ -120,7 +120,7 @@ A timer object that lets you measure the amount of time passed in milliseconds s
 ```
 local timer = sdl.timer()
 <do some work here>
-local timeTaken = timer.elapsed()
+local timeTaken = timer:elapsed()
 ```
 
 #### sdl.mouse
