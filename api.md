@@ -45,8 +45,28 @@ rect.w = 200
 rect.h = 400
 ```
 
+#### sdl.eventloop
+An even loop helper class that can be used to set up own SDL event loop, independent from game's loop.
+```
+local eventloop = sdl.eventloop();
+while eventloop:next() do
+	local type = eventloop:type();
+    
+	<...>
+end
+```
+The ```eventloop:type()``` function returns a value that can be compared to any of the following:
+```
+sdl.events.quit -- user closed the game window
+sdl.events.keydown -- user pressed a button; call eventloop:keycode() to figure out which
+sdl.events.keyup -- user released a button
+sdl.events.mousebuttondown -- user pressed a mouse button
+sdl.events.mousebuttonup -- user released a mouse button
+sdl.events.mousewheel -- user rotated a mouse wheel; call eventloop:wheel() to get direction
+```
+
 #### sdl.screen
-A help class that lets you draw on game's screen.
+A helper class that lets you draw on game's screen.
 ```
 local screen = sdl.screen()
 local w = screen:w() -- width
@@ -66,5 +86,72 @@ screen:unclip() -- undoes the effect of previous function
 
 screen:update() -- call after drawing a bunch of things to have them appear on game screen
 ```
+When sdl.screen object is created, a screenshot of the game is taken, and any drawing that you do is done on top of that screenshot. The intended approach is to create an sdl.scren object, then do a loop using sdl.eventloop, effectively pausing the game as long as screen object exists. This class does not allow you to draw seamlessly with running game.
 
-not finished
+An example of such loop is:
+```
+local screen = sdl.screen()
+local eventloop = sdl.eventloop()
+local quit = 0
+local pointer = sdl.surface("resources/mods/ui/pointer.png");
+local mouserect = sdl.rect(sdl.mouse.x(), sdl.mouse.y(), pointer:w(), pointer:h())
+
+while quit == 0 do
+	while eventloop:next() do
+		local type = eventloop:type();
+		
+		if type == sdl.events.quit then
+			quit = 1
+		elseif type == sdl.events.keydown and eventloop:keycode() == 27 then
+			quit = 1
+		elseif type == sdl.events.mousemotion then
+			mouserect.x = eventloop:x();
+			mouserect.y = eventloop:y();
+		end
+	end
+	
+	screen:blit(pointer, nil, mouserect.x, mouserect.y)
+	screen:update()
+end
+```
+
+#### sdl.timer
+A timer object that lets you measure the amount of time passed in milliseconds since timer's creation.
+```
+local timer = sdl.timer()
+<do some work here>
+local timeTaken = timer.elapsed()
+```
+
+#### sdl.mouse
+A namespace with function for getting mouse coordinates.
+```
+local x = sdl.mouse.x() -- note that sdl.mouse is not an object, and you have to use .x(), not :x()
+local y = sdl.mouse.y()
+```
+
+#### sdl.log(text)
+A function that prints text to log.txt file.
+```
+sdl.log("Testing!")
+```
+
+#### sdl.isshiftdown()
+A function that tells you if shift is pressed
+```
+if(sdl.isshiftdown()) then
+	sdl.log("it is")
+end
+```
+
+#### messagebox(text)
+Shows default windows message box with text in it.
+
+#### listall(dirname)
+Lists all entries inside directory dirname.
+
+#### listfiles(dirname)
+Lists all files inside directory dirname.
+
+#### listdirs(dirname)
+Lists all directories inside directory dirname.

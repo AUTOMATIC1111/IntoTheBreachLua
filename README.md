@@ -4,10 +4,23 @@ This library works as a proxy for lua5.1.dll for the [Into the Breach] game.
 You rename lua5.1.dll in game directory to lua5.1-original.dll, and put this library in place of it.
 The game loads this library, which loads lua5.1-original.dll, passing calls to any of exported functions to it.
 
+## API
+A number of functions are added to game's lua VMs. A full description of what's added is in [api.md](api.md) file.
+
+## Error reporting
+Lua errors that happen in game are dumped to error.txt file. If something doesn't work right in your script and the game is being secretive about what exactly, check errors.txt.
+
+## Autoexec
+The game will load and run scripts in the scripts/autoexec directory, in alphabetical order. This happens after in-game script scripts/items.lua is loaded.
+
 ## Overloading lua5.1.dll functions
+This section is for those who wish to overload the functionality of Lua library function that the game uses.
+
+For example, error reporting and autoexec functionality is made possible by overloading.
+
 The ```HOOK(name,rettype,args)``` macro from ```lua5.1.h``` allows you to write your own wrapper (or implementation) for exported lua functions.
 Arguments are:
- - ```name``` - The name of lua function, without quotes. It has to be one of about hundred functions explored by the dll, or you will get compilation errors.
+- ```name``` - The name of lua function, without quotes. It has to be one of about hundred functions explored by the dll, or you will get compilation errors.
 - ```rettype``` - return type of the lua function.
 - ```args``` - list of arguments inside parentheses.
 
@@ -33,13 +46,5 @@ By default, lua functions are exported using exports.def file with names like ``
 Some functions are already reimplemented in ```lua-hooks.cc```.
 
 If you want to use any of lua functions in your code, you have to reimplement them using the HOOK macro, even if reimplementation does nothing but calls the original.
-
-## Implemented lua functions
-This library creates those lua functions for every lua VM in the game:
- - ```messagebox(text)``` - shows default windows message box with text in it.
- - ```listall(dirname)``` - lists all entries inside directory dirname.
- - ```listfiles(dirname)``` - lists all files inside directory dirname.
- - ```listdirs(dirname)``` - lists all directories inside directory dirname.
-
 
    [Into the Breach]: <https://subsetgames.com/itb.html>
