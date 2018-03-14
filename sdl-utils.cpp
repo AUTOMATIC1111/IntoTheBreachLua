@@ -165,7 +165,7 @@ Surface::Surface(HWND hwnd) {
 	GetClientRect(hwnd, &frame);
 	ClientToScreen(hwnd, &p);
 
-	setBitmap(hCaptureBitmap, p.x, p.y, frame.right, frame.bottom);
+	setBitmap(hCaptureBitmap, p.x, p.y, min(frame.right, nScreenWidth), min(frame.bottom, nScreenHeight));
 
 	ReleaseDC(hDesktopWnd, hDesktopDC);
 	DeleteDC(hCaptureDC);
