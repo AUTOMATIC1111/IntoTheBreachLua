@@ -158,7 +158,7 @@ BOOL WINAPI DllMain(HINSTANCE hInst, DWORD reason, LPVOID) {
 	return 1;
 }
 
-#define LUA_PROXY(n) extern "C" __declspec(naked) void __stdcall __E__##n##__() { { __asm jmp luaTable[0 * 4] } }
+#define LUA_PROXY(n) extern "C" __declspec(naked) void __stdcall __E__##n##__() { { __asm jmp luaTable[n * 4] } }
 LUA_PROXY(0)
 LUA_PROXY(1)
 LUA_PROXY(2)
