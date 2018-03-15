@@ -213,7 +213,7 @@ end
 
 function modApi:addSquad(id,squad,desc,icon)
 	if type(id) == "table" and type(squad) == "string" and type(desc) == "string" then
-		return self:addSquadTrue(id,squad,desc)
+		return self:addSquadTrue(id,squad,desc,icon)
 	end
 
 	--The old way to add squads

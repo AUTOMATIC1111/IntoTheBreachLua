@@ -24,9 +24,13 @@ end
 
 function mod_loader:enumerateMods()
 
-	local modlist = listdirs("mods")
-	for key,value in pairs(modlist) do
-		table.insert(self.mod_dirs,value)
+	if listdirs then
+		local modlist = listdirs("mods")
+		for key,value in pairs(modlist) do
+			table.insert(self.mod_dirs,value)
+		end
+	else
+		for dir in io.popen([[dir ".\mods\" /b /ad]]):lines() do table.insert(self.mod_dirs,dir) end
 	end
 
 	for i, dir in pairs(self.mod_dirs) do
@@ -206,6 +210,7 @@ function mod_loader:loadModContent(mod_options,savedOrder)
 end
 
 function modApi:selectSquads()
+
 	local maxselected = 8
 
 	local screen = sdl.screen()
@@ -213,7 +218,11 @@ function modApi:selectSquads()
 	local w = screen:w()
 	local h = screen:h()
 	local quit = 0
-
+	local pointer = sdl.surface("resources/mods/ui/pointer.png");
+	local mouserect = sdl.rect(sdl.mouse.x(), sdl.mouse.y(), pointer:w(), pointer:h())
+	local screenshot = sdl.screenshot()
+	local bg = sdl.rgba(0,0,0,128)
+	
 	local ui = UiRoot():widthpx(w):heightpx(h)
 	
 	-- bottom frame
@@ -277,9 +286,6 @@ function modApi:selectSquads()
 	end
 	updatecount()
 	
-	local pointer = sdl.surface("resources/mods/ui/pointer.png");
-	local mouserect = sdl.rect(sdl.mouse.x(), sdl.mouse.y(), pointer:w(), pointer:h())
-	
 	while quit == 0 do
 		while eventloop:next() do
 			local type = eventloop:type();
@@ -296,10 +302,12 @@ function modApi:selectSquads()
 			end
 		end
 		
+		screen:begin()
+		screen:blit(screenshot, nil, 0, 0)
+		screen:drawrect(bg, nil)
 		ui:draw(screen)
-		
 		screen:blit(pointer, nil, mouserect.x, mouserect.y)
-		screen:update()
+		screen:finish()
 	end
 	
 	self.squadIndices = {}

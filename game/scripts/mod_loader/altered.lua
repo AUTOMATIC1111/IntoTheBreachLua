@@ -9,25 +9,56 @@ local oldGetText = GetText
 local oldStartNewGame = startNewGame
 local oldLoadGame = LoadGame
 
-local selectSquadsTimer = sdl.timer()
-function getStartingSquad(choice)
-	local shiftdown = sdl.isshiftdown()
-	local elapsed = selectSquadsTimer:elapsed()
-
-	if modApi.squadIndices == nil or ((elapsed > 200) and shiftdown) then
-		modApi:selectSquads()
-		selectSquadsTimer = sdl.timer()
+if sdl then
+	local selectSquadsTimer = sdl.timer()
+	function getStartingSquad(choice)
+		if modApi.squadIndices == nil or ((selectSquadsTimer:elapsed() > 200) and sdl.isshiftdown()) then
+			modApi:selectSquads()
+			selectSquadsTimer = sdl.timer()
+		end
+		
+		if choice >= 0 and choice <= 7 then
+			local index = modApi.squadIndices[choice + 1]
+			
+			modApi:overwriteTextTrue("TipTitle_"..modApi.squadKeys[choice+1],modApi.squad_text[2 * (index-1) + 1])
+			modApi:overwriteTextTrue("TipText_"..modApi.squadKeys[choice+1],modApi.squad_text[2 * (index-1) + 2])
+			
+			return modApi.mod_squads[index]
+		else
+			return oldGetStartingSquad(choice)
+		end
 	end
-	
-	if choice >= 0 and choice <= 7 then
-		local index = modApi.squadIndices[choice + 1]
+else
+	local page = -1
+	local bit = false
+	local shouldTurn = true
+	function getStartingSquad(choice)
+		if choice == SQUAD_DETRITUS_B then
+			shouldTurn = true
+		elseif choice == SQUAD_DETRITUS_B + 1 then
+			shouldTurn = false
+		elseif choice == SQUAD_SECRET and shouldTurn then
+			bit = not bit
+			if bit then
+				page = page + 1
+			end
+		end
 		
-		modApi:overwriteTextTrue("TipTitle_"..modApi.squadKeys[choice+1],modApi.squad_text[2 * (index-1) + 1])
-		modApi:overwriteTextTrue("TipText_"..modApi.squadKeys[choice+1],modApi.squad_text[2 * (index-1) + 2])
-		
-		return modApi.mod_squads[index]
-	else
-		return oldGetStartingSquad(choice)
+		if choice >= SQUAD_ARCHIVE_A and choice <= SQUAD_DETRITUS_B then
+			
+			local key = 1 + (choice + page * 8) % #modApi.mod_squads
+			modApi:overwriteTextTrue("TipTitle_"..modApi.squadKeys[choice + 1],modApi.squad_text[2 * key - 1])
+			modApi:overwriteTextTrue("TipText_"..modApi.squadKeys[choice + 1],modApi.squad_text[2 * key])
+			
+			local squad = modApi.mod_squads[key]
+			
+			
+			--page = (page + 1) % (math.ceil(#modApi.mod_squads / 8))
+			
+			return squad
+		else
+			return oldGetStartingSquad(choice)
+		end
 	end
 end
 
