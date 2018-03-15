@@ -5,6 +5,7 @@
 *.tlog
 Release/*
 Debug/*
+Debug-exe/*
 x64/*
 .vs/*
 error.txt

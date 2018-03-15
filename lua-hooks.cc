@@ -64,8 +64,8 @@ HOOK(luaL_loadstring, int, (lua_State *L, const char *s)) {
 
 
 HOOK(luaL_loadfile, int, (lua_State *L, const char *filename)) {
-	if(strcmp(filename, "scripts/items.lua") == 0)
-		installAutoexec(L);
+//	if(strcmp(filename, "scripts/items.lua") == 0)
+//		installAutoexec(L);
 	
 	int res = (*dll_luaL_loadfile)(L, filename);
 
