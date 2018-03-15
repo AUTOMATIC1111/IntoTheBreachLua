@@ -9,3 +9,4 @@ Debug-exe/*
 x64/*
 .vs/*
 error.txt
+log.txt

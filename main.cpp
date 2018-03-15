@@ -6,7 +6,6 @@
 
 #include <SDL.h>
 
-
 BOOL WINAPI DllMain(HINSTANCE hInst, DWORD reason, LPVOID);
 #ifdef main
 #undef main
@@ -90,7 +89,7 @@ int main(int argc, char *argv[]) {
 
 				lua_State *L = lua_open();
 
-//				installAutoexec(L);
+				installAutoexec(L);
 
 				if(luaL_loadfile(L, "test.lua"))
 					bail(L, "luaL_loadfile() failed");
