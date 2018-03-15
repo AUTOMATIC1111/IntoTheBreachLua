@@ -37,32 +37,6 @@ HOOK(lua_pcall, int, (lua_State *L, int nargs, int nresults, int errfunc)) {
 	return res;
 }
 
-HOOK(lua_load, int, (lua_State *L, lua_Reader reader, void *dt, const char *chunkname)) {
-	int res = (*dll_lua_load)(L, reader, dt, chunkname);
-
-	if(res != 0)
-		error("%s\n", lua_tostring(L, -1));
-
-	return res;
-}
-HOOK(luaL_loadbuffer, int, (lua_State *L, const char *buff, size_t sz, const char *name)) {
-	int res = (*dll_luaL_loadbuffer)(L, buff, sz, name);
-
-	if(res != 0)
-		error("%s\n", lua_tostring(L, -1));
-
-	return res;
-}
-HOOK(luaL_loadstring, int, (lua_State *L, const char *s)) { 
-	int res = (*dll_luaL_loadstring)(L, s);
-
-	if(res != 0)
-		error("%s\n", lua_tostring(L, -1));
-
-	return res;
-}
-
-
 HOOK(luaL_loadfile, int, (lua_State *L, const char *filename)) {
 	if(strcmp(filename, "scripts/items.lua") == 0)
 		installAutoexec(L);
@@ -128,6 +102,7 @@ HOOK(lua_setmetatable, int, (lua_State *L, int objindex)) { return (*dll_lua_set
 HOOK(lua_setfenv, int, (lua_State *L, int idx)) { return (*dll_lua_setfenv)(L, idx); }
 HOOK(lua_call, void, (lua_State *L, int nargs, int nresults)) { return (*dll_lua_call)(L, nargs, nresults); }
 HOOK(lua_cpcall, int, (lua_State *L, lua_CFunction func, void *ud)) { return (*dll_lua_cpcall)(L, func, ud); }
+HOOK(lua_load, int, (lua_State *L, lua_Reader reader, void *dt, const char *chunkname)) { return (*dll_lua_load)(L, reader, dt, chunkname); }
 HOOK(lua_dump, int, (lua_State *L, lua_Writer writer, void *data)) { return (*dll_lua_dump)(L, writer, data); }
 HOOK(lua_newstate, lua_State *, (lua_Alloc f, void *ud)) { return (*dll_lua_newstate)(f, ud); }
 HOOK(lua_close, void, (lua_State *L)) { return (*dll_lua_close)(L); }
@@ -158,6 +133,8 @@ HOOK(luaL_where, void, (lua_State *L, int lvl)) { return (*dll_luaL_where)(L, lv
 HOOK(luaL_checkoption, int, (lua_State *L, int narg, const char *def, const char *const lst[])) { return (*dll_luaL_checkoption)(L, narg, def, lst); }
 HOOK(luaL_ref, int, (lua_State *L, int t)) { return (*dll_luaL_ref)(L, t); }
 HOOK(luaL_unref, void, (lua_State *L, int t, int ref)) { return (*dll_luaL_unref)(L, t, ref); }
+HOOK(luaL_loadbuffer, int, (lua_State *L, const char *buff, size_t sz, const char *name)) { return (*dll_luaL_loadbuffer)(L, buff, sz, name); }
+HOOK(luaL_loadstring, int, (lua_State *L, const char *s)) { return (*dll_luaL_loadstring)(L, s); }
 HOOK(luaL_gsub, const char *, (lua_State *L, const char *s, const char *p, const char *r)) { return (*dll_luaL_gsub)(L, s, p, r); }
 HOOK(luaL_findtable, const char *, (lua_State *L, int idx, const char *fname, int szhint)) { return (*dll_luaL_findtable)(L, idx, fname, szhint); }
 
