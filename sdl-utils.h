@@ -5,9 +5,15 @@
 #include <SDL.h>
 #include <string>
 #include <memory>
+#include <vector>
 #include "Gdiplus.h"
 
+#include <GL/GL.h>
+#include <GL/GLU.h>
+
 namespace SDL {
+
+GLuint glTexture(SDL_Surface *surface);
 
 struct Color :public SDL_Color {
 	Color();
@@ -50,6 +56,7 @@ struct FileFont :public Font {
 struct Surface {
 	unsigned char *pixelData;
 	SDL_Surface* surface;
+	GLuint textureId;
 
 	void setBitmap(Gdiplus::Bitmap *bitmap);
 	void setBitmap(HBITMAP hbitmap, int x, int y, int w, int h);
@@ -71,32 +78,53 @@ struct Surface {
 		return surface->h;
 	}
 
+	GLint texture() {
+		if(textureId == 0 && surface != NULL) {
+			textureId = glTexture(surface);
+		}
+
+		return textureId;
+	}
+
 	~Surface();
 };
 
+struct SurfaceScreenshot :public Surface {
+	SurfaceScreenshot();
+};
 
 struct Screen {
-	std::unique_ptr<Surface> screenshot;
 	SDL_Window* window;
-	SDL_Surface* surface;
+	std::vector<Rect> clippingRects;
 
 	Screen();
 
 	int w() {
-		return surface->w;
+		int w, h;
+
+		SDL_GL_GetDrawableSize(window, &w, &h);
+		return w;
 	}
 
 	int h() {
-		return surface->h;
+		int w, h;
+
+		SDL_GL_GetDrawableSize(window, &w, &h);
+		return h;
 	}
 
-	void update();
+	void begin();
+	void finish();
 
 	void blitRect(Surface *src, Rect *srcRect, Rect *destRect);
 	void blit(Surface *src, Rect *srcRect, int destx, int desty);
 	void drawrect(Color *color, Rect *rect);
 	void clip(Rect *rect);
 	void unclip();
+
+protected:
+
+	void applyClipping();
 };
 
 struct EventLoop {

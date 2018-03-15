@@ -1,8 +1,16 @@
 #include <windows.h>
+#include "hook.h"
+#include <SDL.h>
+#include <stdio.h>
 #pragma pack(1)
+
 
 static HINSTANCE libHandle = 0;
 FARPROC luaTable[123] = { 0 };
+
+extern void __cdecl MySDL_GL_SwapWindow(SDL_Window * window) {
+	printf("oops!\n");
+}
 
 BOOL WINAPI DllMain(HINSTANCE hInst, DWORD reason, LPVOID) {
 	if(reason == DLL_PROCESS_DETACH) {
@@ -15,6 +23,13 @@ BOOL WINAPI DllMain(HINSTANCE hInst, DWORD reason, LPVOID) {
 
 	libHandle = LoadLibraryA("lua5.1-original.dll");
 	if(!libHandle) return false;
+
+	/*
+	HINSTANCE libHandle = LoadLibraryA("SDL2.dll");
+	if(!libHandle) return false;
+	FARPROC func = GetProcAddress(libHandle, "SDL_GL_SwapWindow");
+	hookSweep((int) func, MySDL_GL_SwapWindow, NULL);
+	*/
 
 	luaTable[0] = GetProcAddress(libHandle, "luaL_addlstring");
 	luaTable[1] = GetProcAddress(libHandle, "luaL_addstring");
@@ -143,989 +158,127 @@ BOOL WINAPI DllMain(HINSTANCE hInst, DWORD reason, LPVOID) {
 	return 1;
 }
 
-// luaL_addlstring
-extern "C" __declspec(naked) void __stdcall __E__0__() {
-	__asm
-	{
-		jmp luaTable[0 * 4];
-	}
-}
-
-// luaL_addstring
-extern "C" __declspec(naked) void __stdcall __E__1__() {
-	__asm
-	{
-		jmp luaTable[1 * 4];
-	}
-}
-
-// luaL_addvalue
-extern "C" __declspec(naked) void __stdcall __E__2__() {
-	__asm
-	{
-		jmp luaTable[2 * 4];
-	}
-}
-
-// luaL_argerror
-extern "C" __declspec(naked) void __stdcall __E__3__() {
-	__asm
-	{
-		jmp luaTable[3 * 4];
-	}
-}
-
-// luaL_buffinit
-extern "C" __declspec(naked) void __stdcall __E__4__() {
-	__asm
-	{
-		jmp luaTable[4 * 4];
-	}
-}
-
-// luaL_callmeta
-extern "C" __declspec(naked) void __stdcall __E__5__() {
-	__asm
-	{
-		jmp luaTable[5 * 4];
-	}
-}
-
-// luaL_checkany
-extern "C" __declspec(naked) void __stdcall __E__6__() {
-	__asm
-	{
-		jmp luaTable[6 * 4];
-	}
-}
-
-// luaL_checkinteger
-extern "C" __declspec(naked) void __stdcall __E__7__() {
-	__asm
-	{
-		jmp luaTable[7 * 4];
-	}
-}
-
-// luaL_checklstring
-extern "C" __declspec(naked) void __stdcall __E__8__() {
-	__asm
-	{
-		jmp luaTable[8 * 4];
-	}
-}
-
-// luaL_checknumber
-extern "C" __declspec(naked) void __stdcall __E__9__() {
-	__asm
-	{
-		jmp luaTable[9 * 4];
-	}
-}
-
-// luaL_checkoption
-extern "C" __declspec(naked) void __stdcall __E__10__() {
-	__asm
-	{
-		jmp luaTable[10 * 4];
-	}
-}
-
-// luaL_checkstack
-extern "C" __declspec(naked) void __stdcall __E__11__() {
-	__asm
-	{
-		jmp luaTable[11 * 4];
-	}
-}
-
-// luaL_checktype
-extern "C" __declspec(naked) void __stdcall __E__12__() {
-	__asm
-	{
-		jmp luaTable[12 * 4];
-	}
-}
-
-// luaL_checkudata
-extern "C" __declspec(naked) void __stdcall __E__13__() {
-	__asm
-	{
-		jmp luaTable[13 * 4];
-	}
-}
-
-// luaL_error
-extern "C" __declspec(naked) void __stdcall __E__14__() {
-	__asm
-	{
-		jmp luaTable[14 * 4];
-	}
-}
-
-// luaL_findtable
-extern "C" __declspec(naked) void __stdcall __E__15__() {
-	__asm
-	{
-		jmp luaTable[15 * 4];
-	}
-}
-
-// luaL_getmetafield
-extern "C" __declspec(naked) void __stdcall __E__16__() {
-	__asm
-	{
-		jmp luaTable[16 * 4];
-	}
-}
-
-// luaL_gsub
-extern "C" __declspec(naked) void __stdcall __E__17__() {
-	__asm
-	{
-		jmp luaTable[17 * 4];
-	}
-}
-
-// luaL_loadbuffer
-extern "C" __declspec(naked) void __stdcall __E__18__() {
-	__asm
-	{
-		jmp luaTable[18 * 4];
-	}
-}
-
-// luaL_loadfile
-extern "C" __declspec(naked) void __stdcall __E__19__() {
-	__asm
-	{
-		jmp luaTable[19 * 4];
-	}
-}
-
-// luaL_loadstring
-extern "C" __declspec(naked) void __stdcall __E__20__() {
-	__asm
-	{
-		jmp luaTable[20 * 4];
-	}
-}
-
-// luaL_newmetatable
-extern "C" __declspec(naked) void __stdcall __E__21__() {
-	__asm
-	{
-		jmp luaTable[21 * 4];
-	}
-}
-
-
-// luaL_newstate
-extern "C" __declspec(naked) void __stdcall __E__22__() {
-	__asm
-	{
-		jmp luaTable[22 * 4];
-	}
-}
-
-
-// luaL_openlib
-extern "C" __declspec(naked) void __stdcall __E__23__() {
-	__asm
-	{
-		jmp luaTable[23 * 4];
-	}
-}
-
-// luaL_openlibs
-extern "C" __declspec(naked) void __stdcall __E__24__() {
-	__asm
-	{
-		jmp luaTable[24 * 4];
-	}
-}
-
-// luaL_optinteger
-extern "C" __declspec(naked) void __stdcall __E__25__() {
-	__asm
-	{
-		jmp luaTable[25 * 4];
-	}
-}
-
-// luaL_optlstring
-extern "C" __declspec(naked) void __stdcall __E__26__() {
-	__asm
-	{
-		jmp luaTable[26 * 4];
-	}
-}
-
-// luaL_optnumber
-extern "C" __declspec(naked) void __stdcall __E__27__() {
-	__asm
-	{
-		jmp luaTable[27 * 4];
-	}
-}
-
-// luaL_prepbuffer
-extern "C" __declspec(naked) void __stdcall __E__28__() {
-	__asm
-	{
-		jmp luaTable[28 * 4];
-	}
-}
-
-// luaL_pushresult
-extern "C" __declspec(naked) void __stdcall __E__29__() {
-	__asm
-	{
-		jmp luaTable[29 * 4];
-	}
-}
-
-// luaL_ref
-extern "C" __declspec(naked) void __stdcall __E__30__() {
-	__asm
-	{
-		jmp luaTable[30 * 4];
-	}
-}
-
-// luaL_register
-extern "C" __declspec(naked) void __stdcall __E__31__() {
-	__asm
-	{
-		jmp luaTable[31 * 4];
-	}
-}
-
-// luaL_typerror
-extern "C" __declspec(naked) void __stdcall __E__32__() {
-	__asm
-	{
-		jmp luaTable[32 * 4];
-	}
-}
-
-// luaL_unref
-extern "C" __declspec(naked) void __stdcall __E__33__() {
-	__asm
-	{
-		jmp luaTable[33 * 4];
-	}
-}
-
-// luaL_where
-extern "C" __declspec(naked) void __stdcall __E__34__() {
-	__asm
-	{
-		jmp luaTable[34 * 4];
-	}
-}
-
-// lua_atpanic
-extern "C" __declspec(naked) void __stdcall __E__35__() {
-	__asm
-	{
-		jmp luaTable[35 * 4];
-	}
-}
-
-// lua_call
-extern "C" __declspec(naked) void __stdcall __E__36__() {
-	__asm
-	{
-		jmp luaTable[36 * 4];
-	}
-}
-
-// lua_checkstack
-extern "C" __declspec(naked) void __stdcall __E__37__() {
-	__asm
-	{
-		jmp luaTable[37 * 4];
-	}
-}
-
-// lua_close
-extern "C" __declspec(naked) void __stdcall __E__38__() {
-	__asm
-	{
-		jmp luaTable[38 * 4];
-	}
-}
-
-// lua_concat
-extern "C" __declspec(naked) void __stdcall __E__39__() {
-	__asm
-	{
-		jmp luaTable[39 * 4];
-	}
-}
-
-// lua_cpcall
-extern "C" __declspec(naked) void __stdcall __E__40__() {
-	__asm
-	{
-		jmp luaTable[40 * 4];
-	}
-}
-
-// lua_createtable
-extern "C" __declspec(naked) void __stdcall __E__41__() {
-	__asm
-	{
-		jmp luaTable[41 * 4];
-	}
-}
-
-// lua_dump
-extern "C" __declspec(naked) void __stdcall __E__42__() {
-	__asm
-	{
-		jmp luaTable[42 * 4];
-	}
-}
-
-// lua_equal
-extern "C" __declspec(naked) void __stdcall __E__43__() {
-	__asm
-	{
-		jmp luaTable[43 * 4];
-	}
-}
-
-// lua_error
-extern "C" __declspec(naked) void __stdcall __E__44__() {
-	__asm
-	{
-		jmp luaTable[44 * 4];
-	}
-}
-
-// lua_gc
-extern "C" __declspec(naked) void __stdcall __E__45__() {
-	__asm
-	{
-		jmp luaTable[45 * 4];
-	}
-}
-
-// lua_getallocf
-extern "C" __declspec(naked) void __stdcall __E__46__() {
-	__asm
-	{
-		jmp luaTable[46 * 4];
-	}
-}
-
-// lua_getfenv
-extern "C" __declspec(naked) void __stdcall __E__47__() {
-	__asm
-	{
-		jmp luaTable[47 * 4];
-	}
-}
-
-// lua_getfield
-extern "C" __declspec(naked) void __stdcall __E__48__() {
-	__asm
-	{
-		jmp luaTable[48 * 4];
-	}
-}
-
-// lua_gethook
-extern "C" __declspec(naked) void __stdcall __E__49__() {
-	__asm
-	{
-		jmp luaTable[49 * 4];
-	}
-}
-
-// lua_gethookcount
-extern "C" __declspec(naked) void __stdcall __E__50__() {
-	__asm
-	{
-		jmp luaTable[50 * 4];
-	}
-}
-
-// lua_gethookmask
-extern "C" __declspec(naked) void __stdcall __E__51__() {
-	__asm
-	{
-		jmp luaTable[51 * 4];
-	}
-}
-
-// lua_getinfo
-extern "C" __declspec(naked) void __stdcall __E__52__() {
-	__asm
-	{
-		jmp luaTable[52 * 4];
-	}
-}
-
-// lua_getlocal
-extern "C" __declspec(naked) void __stdcall __E__53__() {
-	__asm
-	{
-		jmp luaTable[53 * 4];
-	}
-}
-
-// lua_getmetatable
-extern "C" __declspec(naked) void __stdcall __E__54__() {
-	__asm
-	{
-		jmp luaTable[54 * 4];
-	}
-}
-
-// lua_getstack
-extern "C" __declspec(naked) void __stdcall __E__55__() {
-	__asm
-	{
-		jmp luaTable[55 * 4];
-	}
-}
-
-// lua_gettable
-extern "C" __declspec(naked) void __stdcall __E__56__() {
-	__asm
-	{
-		jmp luaTable[56 * 4];
-	}
-}
-
-// lua_gettop
-extern "C" __declspec(naked) void __stdcall __E__57__() {
-	__asm
-	{
-		jmp luaTable[57 * 4];
-	}
-}
-
-// lua_getupvalue
-extern "C" __declspec(naked) void __stdcall __E__58__() {
-	__asm
-	{
-		jmp luaTable[58 * 4];
-	}
-}
-
-// lua_insert
-extern "C" __declspec(naked) void __stdcall __E__59__() {
-	__asm
-	{
-		jmp luaTable[59 * 4];
-	}
-}
-
-// lua_iscfunction
-extern "C" __declspec(naked) void __stdcall __E__60__() {
-	__asm
-	{
-		jmp luaTable[60 * 4];
-	}
-}
-
-// lua_isnumber
-extern "C" __declspec(naked) void __stdcall __E__61__() {
-	__asm
-	{
-		jmp luaTable[61 * 4];
-	}
-}
-
-// lua_isstring
-extern "C" __declspec(naked) void __stdcall __E__62__() {
-	__asm
-	{
-		jmp luaTable[62 * 4];
-	}
-}
-
-// lua_isuserdata
-extern "C" __declspec(naked) void __stdcall __E__63__() {
-	__asm
-	{
-		jmp luaTable[63 * 4];
-	}
-}
-
-// lua_lessthan
-extern "C" __declspec(naked) void __stdcall __E__64__() {
-	__asm
-	{
-		jmp luaTable[64 * 4];
-	}
-}
-
-// lua_load
-extern "C" __declspec(naked) void __stdcall __E__65__() {
-	__asm
-	{
-		jmp luaTable[65 * 4];
-	}
-}
-
-// lua_newstate
-extern "C" __declspec(naked) void __stdcall __E__66__() {
-	__asm
-	{
-		jmp luaTable[66 * 4];
-	}
-}
-
-// lua_newthread
-extern "C" __declspec(naked) void __stdcall __E__67__() {
-	__asm
-	{
-		jmp luaTable[67 * 4];
-	}
-}
-
-// lua_newuserdata
-extern "C" __declspec(naked) void __stdcall __E__68__() {
-	__asm
-	{
-		jmp luaTable[68 * 4];
-	}
-}
-
-// lua_next
-extern "C" __declspec(naked) void __stdcall __E__69__() {
-	__asm
-	{
-		jmp luaTable[69 * 4];
-	}
-}
-
-// lua_objlen
-extern "C" __declspec(naked) void __stdcall __E__70__() {
-	__asm
-	{
-		jmp luaTable[70 * 4];
-	}
-}
-
-// lua_pcall
-extern "C" __declspec(naked) void __stdcall __E__71__() {
-	__asm
-	{
-		jmp luaTable[71 * 4];
-	}
-}
-
-// lua_pushboolean
-extern "C" __declspec(naked) void __stdcall __E__72__() {
-	__asm
-	{
-		jmp luaTable[72 * 4];
-	}
-}
-
-// lua_pushcclosure
-extern "C" __declspec(naked) void __stdcall __E__73__() {
-	__asm
-	{
-		jmp luaTable[73 * 4];
-	}
-}
-
-// lua_pushfstring
-extern "C" __declspec(naked) void __stdcall __E__74__() {
-	__asm
-	{
-		jmp luaTable[74 * 4];
-	}
-}
-
-// lua_pushinteger
-extern "C" __declspec(naked) void __stdcall __E__75__() {
-	__asm
-	{
-		jmp luaTable[75 * 4];
-	}
-}
-
-// lua_pushlightuserdata
-extern "C" __declspec(naked) void __stdcall __E__76__() {
-	__asm
-	{
-		jmp luaTable[76 * 4];
-	}
-}
-
-// lua_pushlstring
-extern "C" __declspec(naked) void __stdcall __E__77__() {
-	__asm
-	{
-		jmp luaTable[77 * 4];
-	}
-}
-
-// lua_pushnil
-extern "C" __declspec(naked) void __stdcall __E__78__() {
-	__asm
-	{
-		jmp luaTable[78 * 4];
-	}
-}
-
-// lua_pushnumber
-extern "C" __declspec(naked) void __stdcall __E__79__() {
-	__asm
-	{
-		jmp luaTable[79 * 4];
-	}
-}
-
-// lua_pushstring
-extern "C" __declspec(naked) void __stdcall __E__80__() {
-	__asm
-	{
-		jmp luaTable[80 * 4];
-	}
-}
-
-// lua_pushthread
-extern "C" __declspec(naked) void __stdcall __E__81__() {
-	__asm
-	{
-		jmp luaTable[81 * 4];
-	}
-}
-
-// lua_pushvalue
-extern "C" __declspec(naked) void __stdcall __E__82__() {
-	__asm
-	{
-		jmp luaTable[82 * 4];
-	}
-}
-
-// lua_pushvfstring
-extern "C" __declspec(naked) void __stdcall __E__83__() {
-	__asm
-	{
-		jmp luaTable[83 * 4];
-	}
-}
-
-// lua_rawequal
-extern "C" __declspec(naked) void __stdcall __E__84__() {
-	__asm
-	{
-		jmp luaTable[84 * 4];
-	}
-}
-
-// lua_rawget
-extern "C" __declspec(naked) void __stdcall __E__85__() {
-	__asm
-	{
-		jmp luaTable[85 * 4];
-	}
-}
-
-// lua_rawgeti
-extern "C" __declspec(naked) void __stdcall __E__86__() {
-	__asm
-	{
-		jmp luaTable[86 * 4];
-	}
-}
-
-// lua_rawset
-extern "C" __declspec(naked) void __stdcall __E__87__() {
-	__asm
-	{
-		jmp luaTable[87 * 4];
-	}
-}
-
-// lua_rawseti
-extern "C" __declspec(naked) void __stdcall __E__88__() {
-	__asm
-	{
-		jmp luaTable[88 * 4];
-	}
-}
-
-// lua_remove
-extern "C" __declspec(naked) void __stdcall __E__89__() {
-	__asm
-	{
-		jmp luaTable[89 * 4];
-	}
-}
-
-// lua_replace
-extern "C" __declspec(naked) void __stdcall __E__90__() {
-	__asm
-	{
-		jmp luaTable[90 * 4];
-	}
-}
-
-// lua_resume
-extern "C" __declspec(naked) void __stdcall __E__91__() {
-	__asm
-	{
-		jmp luaTable[91 * 4];
-	}
-}
-
-// lua_setallocf
-extern "C" __declspec(naked) void __stdcall __E__92__() {
-	__asm
-	{
-		jmp luaTable[92 * 4];
-	}
-}
-
-// lua_setfenv
-extern "C" __declspec(naked) void __stdcall __E__93__() {
-	__asm
-	{
-		jmp luaTable[93 * 4];
-	}
-}
-
-// lua_setfield
-extern "C" __declspec(naked) void __stdcall __E__94__() {
-	__asm
-	{
-		jmp luaTable[94 * 4];
-	}
-}
-
-// lua_sethook
-extern "C" __declspec(naked) void __stdcall __E__95__() {
-	__asm
-	{
-		jmp luaTable[95 * 4];
-	}
-}
-
-// lua_setlevel
-extern "C" __declspec(naked) void __stdcall __E__96__() {
-	__asm
-	{
-		jmp luaTable[96 * 4];
-	}
-}
-
-// lua_setlocal
-extern "C" __declspec(naked) void __stdcall __E__97__() {
-	__asm
-	{
-		jmp luaTable[97 * 4];
-	}
-}
-
-// lua_setmetatable
-extern "C" __declspec(naked) void __stdcall __E__98__() {
-	__asm
-	{
-		jmp luaTable[98 * 4];
-	}
-}
-
-// lua_settable
-extern "C" __declspec(naked) void __stdcall __E__99__() {
-	__asm
-	{
-		jmp luaTable[99 * 4];
-	}
-}
-
-// lua_settop
-extern "C" __declspec(naked) void __stdcall __E__100__() {
-	__asm
-	{
-		jmp luaTable[100 * 4];
-	}
-}
-
-// lua_setupvalue
-extern "C" __declspec(naked) void __stdcall __E__101__() {
-	__asm
-	{
-		jmp luaTable[101 * 4];
-	}
-}
-
-// lua_status
-extern "C" __declspec(naked) void __stdcall __E__102__() {
-	__asm
-	{
-		jmp luaTable[102 * 4];
-	}
-}
-
-// lua_toboolean
-extern "C" __declspec(naked) void __stdcall __E__103__() {
-	__asm
-	{
-		jmp luaTable[103 * 4];
-	}
-}
-
-// lua_tocfunction
-extern "C" __declspec(naked) void __stdcall __E__104__() {
-	__asm
-	{
-		jmp luaTable[104 * 4];
-	}
-}
-
-// lua_tointeger
-extern "C" __declspec(naked) void __stdcall __E__105__() {
-	__asm
-	{
-		jmp luaTable[105 * 4];
-	}
-}
-
-// lua_tolstring
-extern "C" __declspec(naked) void __stdcall __E__106__() {
-	__asm
-	{
-		jmp luaTable[106 * 4];
-	}
-}
-
-// lua_tonumber
-extern "C" __declspec(naked) void __stdcall __E__107__() {
-	__asm
-	{
-		jmp luaTable[107 * 4];
-	}
-}
-
-// lua_topointer
-extern "C" __declspec(naked) void __stdcall __E__108__() {
-	__asm
-	{
-		jmp luaTable[108 * 4];
-	}
-}
-
-// lua_tothread
-extern "C" __declspec(naked) void __stdcall __E__109__() {
-	__asm
-	{
-		jmp luaTable[109 * 4];
-	}
-}
-
-// lua_touserdata
-extern "C" __declspec(naked) void __stdcall __E__110__() {
-	__asm
-	{
-		jmp luaTable[110 * 4];
-	}
-}
-
-// lua_type
-extern "C" __declspec(naked) void __stdcall __E__111__() {
-	__asm
-	{
-		jmp luaTable[111 * 4];
-	}
-}
-
-// lua_typename
-extern "C" __declspec(naked) void __stdcall __E__112__() {
-	__asm
-	{
-		jmp luaTable[112 * 4];
-	}
-}
-
-// lua_xmove
-extern "C" __declspec(naked) void __stdcall __E__113__() {
-	__asm
-	{
-		jmp luaTable[113 * 4];
-	}
-}
-
-// lua_yield
-extern "C" __declspec(naked) void __stdcall __E__114__() {
-	__asm
-	{
-		jmp luaTable[114 * 4];
-	}
-}
-
-// luaopen_base
-extern "C" __declspec(naked) void __stdcall __E__115__() {
-	__asm
-	{
-		jmp luaTable[115 * 4];
-	}
-}
-
-// luaopen_debug
-extern "C" __declspec(naked) void __stdcall __E__116__() {
-	__asm
-	{
-		jmp luaTable[116 * 4];
-	}
-}
-
-// luaopen_io
-extern "C" __declspec(naked) void __stdcall __E__117__() {
-	__asm
-	{
-		jmp luaTable[117 * 4];
-	}
-}
-
-// luaopen_math
-extern "C" __declspec(naked) void __stdcall __E__118__() {
-	__asm
-	{
-		jmp luaTable[118 * 4];
-	}
-}
-
-// luaopen_os
-extern "C" __declspec(naked) void __stdcall __E__119__() {
-	__asm
-	{
-		jmp luaTable[119 * 4];
-	}
-}
-
-// luaopen_package
-extern "C" __declspec(naked) void __stdcall __E__120__() {
-	__asm
-	{
-		jmp luaTable[120 * 4];
-	}
-}
-
-// luaopen_string
-extern "C" __declspec(naked) void __stdcall __E__121__() {
-	__asm
-	{
-		jmp luaTable[121 * 4];
-	}
-}
-
-// luaopen_table
-extern "C" __declspec(naked) void __stdcall __E__122__() {
-	__asm
-	{
-		jmp luaTable[122 * 4];
-	}
-}
-
+#define LUA_PROXY(n) extern "C" __declspec(naked) void __stdcall __E__##n##__() { { __asm jmp luaTable[0 * 4] } }
+LUA_PROXY(0)
+LUA_PROXY(1)
+LUA_PROXY(2)
+LUA_PROXY(3)
+LUA_PROXY(4)
+LUA_PROXY(5)
+LUA_PROXY(6)
+LUA_PROXY(7)
+LUA_PROXY(8)
+LUA_PROXY(9)
+LUA_PROXY(10)
+LUA_PROXY(11)
+LUA_PROXY(12)
+LUA_PROXY(13)
+LUA_PROXY(14)
+LUA_PROXY(15)
+LUA_PROXY(16)
+LUA_PROXY(17)
+LUA_PROXY(18)
+LUA_PROXY(19)
+LUA_PROXY(20)
+LUA_PROXY(21)
+LUA_PROXY(22)
+LUA_PROXY(23)
+LUA_PROXY(24)
+LUA_PROXY(25)
+LUA_PROXY(26)
+LUA_PROXY(27)
+LUA_PROXY(28)
+LUA_PROXY(29)
+LUA_PROXY(30)
+LUA_PROXY(31)
+LUA_PROXY(32)
+LUA_PROXY(33)
+LUA_PROXY(34)
+LUA_PROXY(35)
+LUA_PROXY(36)
+LUA_PROXY(37)
+LUA_PROXY(38)
+LUA_PROXY(39)
+LUA_PROXY(40)
+LUA_PROXY(41)
+LUA_PROXY(42)
+LUA_PROXY(43)
+LUA_PROXY(44)
+LUA_PROXY(45)
+LUA_PROXY(46)
+LUA_PROXY(47)
+LUA_PROXY(48)
+LUA_PROXY(49)
+LUA_PROXY(50)
+LUA_PROXY(51)
+LUA_PROXY(52)
+LUA_PROXY(53)
+LUA_PROXY(54)
+LUA_PROXY(55)
+LUA_PROXY(56)
+LUA_PROXY(57)
+LUA_PROXY(58)
+LUA_PROXY(59)
+LUA_PROXY(60)
+LUA_PROXY(61)
+LUA_PROXY(62)
+LUA_PROXY(63)
+LUA_PROXY(64)
+LUA_PROXY(65)
+LUA_PROXY(66)
+LUA_PROXY(67)
+LUA_PROXY(68)
+LUA_PROXY(69)
+LUA_PROXY(70)
+LUA_PROXY(71)
+LUA_PROXY(72)
+LUA_PROXY(73)
+LUA_PROXY(74)
+LUA_PROXY(75)
+LUA_PROXY(76)
+LUA_PROXY(77)
+LUA_PROXY(78)
+LUA_PROXY(79)
+LUA_PROXY(80)
+LUA_PROXY(81)
+LUA_PROXY(82)
+LUA_PROXY(83)
+LUA_PROXY(84)
+LUA_PROXY(85)
+LUA_PROXY(86)
+LUA_PROXY(87)
+LUA_PROXY(88)
+LUA_PROXY(89)
+LUA_PROXY(90)
+LUA_PROXY(91)
+LUA_PROXY(92)
+LUA_PROXY(93)
+LUA_PROXY(94)
+LUA_PROXY(95)
+LUA_PROXY(96)
+LUA_PROXY(97)
+LUA_PROXY(98)
+LUA_PROXY(99)
+LUA_PROXY(100)
+LUA_PROXY(101)
+LUA_PROXY(102)
+LUA_PROXY(103)
+LUA_PROXY(104)
+LUA_PROXY(105)
+LUA_PROXY(106)
+LUA_PROXY(107)
+LUA_PROXY(108)
+LUA_PROXY(109)
+LUA_PROXY(110)
+LUA_PROXY(111)
+LUA_PROXY(112)
+LUA_PROXY(113)
+LUA_PROXY(114)
+LUA_PROXY(115)
+LUA_PROXY(116)
+LUA_PROXY(117)
+LUA_PROXY(118)
+LUA_PROXY(119)
+LUA_PROXY(120)
+LUA_PROXY(121)
+LUA_PROXY(122)

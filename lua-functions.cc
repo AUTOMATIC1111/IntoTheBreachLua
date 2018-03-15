@@ -125,12 +125,16 @@ void installFunctions(lua_State *L) {
 		.addConstructor <void(*) (SDL::Surface *base, int levels, SDL::Color *color)>()
 		.endClass()
 
+		.deriveClass<SDL::SurfaceScreenshot, SDL::Surface>("screenshot")
+		.addConstructor <void(*) ()>()
+		.endClass()
 
 		.beginClass <SDL::Screen>("screen")
 		.addConstructor <void(*) ()>()
 		.addFunction("w", &SDL::Screen::w)
 		.addFunction("h", &SDL::Screen::h)
-		.addFunction("update", &SDL::Screen::update)
+		.addFunction("begin", &SDL::Screen::begin)
+		.addFunction("finish", &SDL::Screen::finish)
 		.addFunction("blit", &SDL::Screen::blit)
 		.addFunction("drawrect", &SDL::Screen::drawrect)
 		.addFunction("clip", &SDL::Screen::clip)

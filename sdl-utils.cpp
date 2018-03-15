@@ -5,6 +5,12 @@
 #include "Gdiplus.h"
 #pragma comment(lib,"Gdiplus.lib")
 
+#pragma comment(lib,"opengl32.lib")
+#include <GL/GL.h>
+#include <GL/GLU.h>
+#include "glext.h"
+
+
 struct GdiPlusHelper {
 	GdiPlusHelper() {
 		Gdiplus::GdiplusStartupInput gdiplusStartupInput;
@@ -17,6 +23,39 @@ struct GdiPlusHelper {
 extern SDL_Window *globalWindow;
 
 namespace SDL {
+
+GLuint glTexture(SDL_Surface *_surface) {
+	GLuint texture = 0;
+
+	GLenum texture_format, internal_format, tex_type;
+	texture_format = GL_BGRA;
+	tex_type = GL_UNSIGNED_INT_8_8_8_8_REV;
+	internal_format = GL_RGBA8;
+
+	int alignment = 8;
+	while(_surface->pitch%alignment) alignment >>= 1; // x%1==0 for any x
+	glPixelStorei(GL_UNPACK_ALIGNMENT, alignment);
+
+	int expected_pitch = (_surface->w*_surface->format->BytesPerPixel + alignment - 1) / alignment*alignment;
+	if(_surface->pitch - expected_pitch >= alignment) // Alignment alone wont't solve it now
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, _surface->pitch / _surface->format->BytesPerPixel);
+	else glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, internal_format, _surface->w, _surface->h, 0, texture_format, tex_type, _surface->pixels);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+
+	return texture;
+}
+
 
 Color::Color() {
 	r = 255;
@@ -80,6 +119,7 @@ FileFont::FileFont(const std::string &filename, double size) {
 void Surface::init() {
 	pixelData = NULL;
 	surface = NULL;
+	textureId = 0;
 }
 
 Surface::~Surface() {
@@ -87,6 +127,8 @@ Surface::~Surface() {
 		delete[] pixelData;
 	if(surface != NULL)
 		SDL_FreeSurface(surface);
+	if(textureId != 0)
+		glDeleteTextures(1, &textureId);
 }
 
 void Surface::setBitmap(HBITMAP hCaptureBitmap, int sx, int sy, int w, int h) {
@@ -290,46 +332,133 @@ Surface::Surface(Surface *parent, int levels, Color *color) {
 	delete[] data2;
 }
 
-Screen::Screen() {
-	window = SDL_GL_GetCurrentWindow();
+HWND getGameHWND() {
+	SDL_Window *window = SDL_GL_GetCurrentWindow();
 	if(window == NULL) window = globalWindow;
-
-	surface = SDL_GetWindowSurface(window);
 
 	SDL_SysWMinfo wmInfo;
 	SDL_VERSION(&wmInfo.version);
 	SDL_GetWindowWMInfo(window, &wmInfo);
-	screenshot.reset(new Surface(wmInfo.info.win.window));
-
-	SDL_BlitSurface(screenshot->surface, NULL, surface, NULL);
+	
+	return wmInfo.info.win.window;
 }
 
-void Screen::update() {
-	SDL_UpdateWindowSurface(window);
-	SDL_BlitSurface(screenshot->surface, NULL, surface, NULL);
+SurfaceScreenshot::SurfaceScreenshot() :Surface(getGameHWND()) {
+
+};
+
+Screen::Screen() {
+	window = SDL_GL_GetCurrentWindow();
+	if(window == NULL) window = globalWindow;
+}
+
+void Screen::begin() {
+	int w, h;
+	SDL_GL_GetDrawableSize(window, &w, &h);
+
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	glOrtho(0.0, w, h, 0.0, -1.0, 1.0);
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+
+	glLoadIdentity();
+	glDisable(GL_LIGHTING);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+}
+
+void Screen::finish() {
+	glDisable(GL_TEXTURE_2D);
+	glPopMatrix();
+
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+
+	glMatrixMode(GL_MODELVIEW);
+	SDL_GL_SwapWindow(globalWindow);
 }
 
 void Screen::blitRect(Surface *src, Rect *srcRect, Rect *destRect) {
-	SDL_BlitSurface(src->surface, srcRect, surface, destRect);
+	int x1 = destRect->x;
+	int y1 = destRect->y;
+	int x2 = destRect->x + destRect->w;
+	int y2 = destRect->y + destRect->h;
+
+	glColor3f(1, 1, 1);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, src->texture());
+
+	glBegin(GL_QUADS);
+	glTexCoord2f(0, 0); glVertex3i(x1, y1, 0);
+	glTexCoord2f(0, 1); glVertex3i(x1, y2, 0);
+	glTexCoord2f(1, 1); glVertex3i(x2, y2, 0);
+	glTexCoord2f(1, 0); glVertex3i(x2, y1, 0);
+	glEnd();
 }
 
 void Screen::blit(Surface *src, Rect *srcRect, int destx, int desty) {
 	Rect destRect = { destx, desty, src->w(), src->h() };
 
-	SDL_BlitSurface(src->surface, srcRect, surface, &destRect);
+	blitRect(src, srcRect, &destRect);
 }
 void Screen::drawrect(Color *color, Rect *rect) {
-	SDL_FillRect(surface, rect, SDL_MapRGBA(surface->format, color->r, color->g, color->b, color->a));
+	glColor4f(color->r/255.0f, color->g / 255.0f, color->b / 255.0f, color->a / 255.0f);
+	glDisable(GL_TEXTURE_2D);
+
+	int x1, y1, x2, y2;
+	if(rect == NULL) {
+		int w, h;
+		SDL_GL_GetDrawableSize(window, &w, &h);
+
+		x1 = 0;
+		y1 = 0;
+		x2 = w;
+		y2 = h;
+	} else {
+		x1 = rect->x;
+		y1 = rect->y;
+		x2 = rect->x + rect->w;
+		y2 = rect->y + rect->h;
+	}
+
+
+	glBegin(GL_QUADS);
+	glVertex3i(x1, y1, 0);
+	glVertex3i(x1, y2, 0);
+	glVertex3i(x2, y2, 0);
+	glVertex3i(x2, y1, 0);
+	glEnd();
 }
 
 void Screen::clip(Rect *rect) {
-	SDL_SetClipRect(surface, rect);
+	clippingRects.push_back(*rect);
+
+	applyClipping();
 }
 
 void Screen::unclip() {
-	SDL_SetClipRect(surface, NULL);
+	if(!clippingRects.empty())
+		clippingRects.pop_back();
+	
+	applyClipping();
 }
 
+void Screen::applyClipping() {
+	if(clippingRects.empty()) {
+		glDisable(GL_SCISSOR_TEST);
+	} else {
+		int w, h;
+		SDL_GL_GetDrawableSize(window, &w, &h);
+
+		Rect *rect = &clippingRects.at(clippingRects.size() - 1);
+		glScissor(rect->x, h - rect->y - rect->h, rect->w, rect->h);
+		glEnable(GL_SCISSOR_TEST);
+	}
+}
 
 bool EventLoop::next() {
 	if(SDL_PollEvent(&event) == 0)

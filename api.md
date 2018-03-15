@@ -33,6 +33,10 @@ local outl = sdl.outlined(surf,1,sdl.color(255,0,0))
 
 -- create a new surface by rendering text
 local textsurf = sdl.text(font,textset,"hello!")
+
+-- createw a new surface by taking a screenshot of the game window
+local screenshot = sdl.screenshot()
+
 ```
 
 #### sdl.rect
@@ -96,9 +100,10 @@ screen:drawrect(rect, sdl:rgb(128,128,128)) -- draw a rectangle
 screen:clip(rect) -- prevents pixels outside the rectangle to be changed
 screen:unclip() -- undoes the effect of previous function
 
-screen:update() -- call after drawing a bunch of things to have them appear on game screen
+screen:start() -- all drawing must happen between calls to start() and finish()
+screen:finish() -- call after drawing a bunch of things to have them appear on game screen
 ```
-When sdl.screen object is created, a screenshot of the game is taken, and any drawing that you do is done on top of that screenshot. The intended approach is to create an sdl.scren object, then do a loop using sdl.eventloop, effectively pausing the game as long as screen object exists. This class does not allow you to draw seamlessly with running game.
+The intended approach is to create an sdl.scren object, then do a loop using sdl.eventloop, effectively pausing the game as long as screen object exists. This class does not allow you to draw seamlessly with running game.
 
 An example of such loop is:
 ```
@@ -106,7 +111,8 @@ local screen = sdl.screen()
 local eventloop = sdl.eventloop()
 local quit = 0
 local pointer = sdl.surface("resources/mods/ui/pointer.png");
-local mouserect = sdl.rect(sdl.mouse.x(), sdl.mouse.y(), pointer:w(), pointer:h())
+local mouserect = sdl.rect(sdl.mouse.x(), sdl.mouse.y(), pointer:w(), 	local screenshot = sdl.screenshot()
+pointer:h())
 
 while quit == 0 do
 	while eventloop:next() do
@@ -121,9 +127,11 @@ while quit == 0 do
 			mouserect.y = eventloop:y();
 		end
 	end
-	
+
+    screen:start()
+	screen:blit(screenshot, nil, 0, 0)
 	screen:blit(pointer, nil, mouserect.x, mouserect.y)
-	screen:update()
+	screen:finish()
 end
 ```
 

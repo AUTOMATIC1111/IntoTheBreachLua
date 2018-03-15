@@ -6,6 +6,8 @@
     <ClCompile Include="lua-hooks.cc" />
     <ClCompile Include="utils.cc" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="sdl-utils.cpp" />
+    <ClCompile Include="hook.cc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lua-functions.h" />
@@ -62,6 +64,12 @@
     <ClInclude Include="LuaBridge\RefCountedPtr.h">
       <Filter>lua</Filter>
     </ClInclude>
+    <ClInclude Include="lua\lauxlib.h" />
+    <ClInclude Include="lua\lua.h" />
+    <ClInclude Include="lua\luaconf.h" />
+    <ClInclude Include="lua\lualib.h" />
+    <ClInclude Include="sdl-utils.h" />
+    <ClInclude Include="hook.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />
