@@ -7,7 +7,7 @@
 
 HOOK(luaL_newstate, lua_State *, ()) {
 	lua_State *l = (*dll_luaL_newstate)();
-
+	
 	installFunctions(l);
 
 	lua_pushcfunction(l, Messagebox);
@@ -24,7 +24,7 @@ HOOK(luaL_newstate, lua_State *, ()) {
 
 	lua_pushcfunction(l, SdlTest);
 	lua_setglobal(l, "sdltest");
-
+	
 	return l;
 }
 
@@ -61,12 +61,7 @@ HOOK(luaL_loadstring, int, (lua_State *L, const char *s)) {
 
 	return res;
 }
-
-
 HOOK(luaL_loadfile, int, (lua_State *L, const char *filename)) {
-	if(strcmp(filename, "scripts/items.lua") == 0)
-		installAutoexec(L);
-	
 	int res = (*dll_luaL_loadfile)(L, filename);
 
 	if(res != 0)
