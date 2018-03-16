@@ -101,6 +101,8 @@ void installFunctions(lua_State *L) {
 		.addConstructor <void(*) ()>()
 		.addData("antialias", &SDL::TextSettings::antialias)
 		.addData("color", &SDL::TextSettings::color)
+		.addData("outlineWidth", &SDL::TextSettings::outlineWidth)
+		.addData("outlineColor", &SDL::TextSettings::outlineColor)
 		.endClass()
 
 		.beginClass <SDL::Font>("font")
@@ -123,6 +125,10 @@ void installFunctions(lua_State *L) {
 
 		.deriveClass<SDL::Surface, SDL::Surface>("outlined")
 		.addConstructor <void(*) (SDL::Surface *base, int levels, SDL::Color *color)>()
+		.endClass()
+
+		.deriveClass<SDL::Surface, SDL::Surface>("scaled")
+		.addConstructor <void(*) (int scaling, SDL::Surface *base)>()
 		.endClass()
 
 		.deriveClass<SDL::SurfaceScreenshot, SDL::Surface>("screenshot")

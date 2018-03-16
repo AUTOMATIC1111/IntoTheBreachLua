@@ -1,12 +1,34 @@
-uifont = sdl.filefont("resources/mods/Justin13.ttf",13);
-uitextset = sdl.textsettings()
-uitextset.antialias = false
-uitextset.color = sdl.rgba(255,255,255,255)
-
+local white = sdl.rgb(255,255,255)
+local black = sdl.rgb(0,0,0)
 local buttoncolor = sdl.rgb(24,28,40)
 local buttonbordercolor = sdl.rgb(73,92,121)
 local buttonhlcolor = sdl.rgb(217,235,200)
 local buttondisabledcolor = sdl.rgb(80,80,80)
+
+local function textset(color,outlineColor,outlineWidth)
+	local res = sdl.textsettings()
+	
+	res.antialias = false
+	res.color = color
+	res.outlineColor = outlineColor or white
+	res.outlineWidth = outlineWidth or 0
+
+	return res
+end
+
+local justin13 = sdl.filefont("resources/mods/Justin13.ttf",13)
+local justin15 = sdl.filefont("resources/mods/Justin15.ttf",18)
+
+local uifont = {
+	default = {
+		font = justin13,
+		set = textset(white),
+	},
+	title = {
+		font = justin15,
+		set = textset(white,sdl.rgb(35,42,59),2),
+	},
+}
 
 UiDeco = Class.new()
 function UiDeco:new()
@@ -153,8 +175,8 @@ end
 
 DecoSurfaceOutlined = Class.inherit(DecoSurface)
 function DecoSurfaceOutlined:new(surface,levels,bordercolor,hlcolor)
-	self.surfacenormal = sdl.outlined(surface,levels or 2,bordercolor or buttonbordercolor)
-	self.surfacehl = sdl.outlined(surface,levels or 2,hlcolor or buttonhlcolor)
+	self.surfacenormal = sdl.scaled(2,sdl.outlined(surface,levels or 1,bordercolor or buttonbordercolor))
+	self.surfacehl = sdl.scaled(2,sdl.outlined(surface,levels or 1,hlcolor or buttonhlcolor))
 end
 
 function DecoSurfaceOutlined:draw(screen,widget)
@@ -165,9 +187,10 @@ end
 
 DecoText = Class.inherit(DecoSurface)
 function DecoText:new(text, font, textset)
-	self.font = font or uifont
-	self.textset = textset or uitextset
+	self.font = font or uifont.default.font
+	self.textset = textset or uifont.default.set
 	self.text = text or ""
+
 	DecoSurface.new(self, sdl.text(self.font,self.textset,self.text))
 end
 
@@ -192,10 +215,10 @@ end
 DecoFrameCaption = Class.inherit(DecoCaption)
 function DecoFrameCaption:new(color, font, textset)
 	self.color = color or buttonbordercolor
-	self.height = 24
+	self.height = 40
 	self.rect = sdl.rect(0,0,0,0)
 	
-	DecoCaption.new(self, font, textset)
+	DecoCaption.new(self, uifont.title.font, uifont.title.set)
 end
 
 function DecoFrameCaption:draw(screen,widget)
@@ -209,7 +232,8 @@ function DecoFrameCaption:draw(screen,widget)
 	self.rect.h = self.height
 	
 	screen:drawrect(self.color, self.rect)
-	screen:blit(self.surface, nil, r.x + 2, r.y + self.height/2 - self.surface:h()/2 + 2)
+	local offset = self.height/2 - self.surface:h()/2 + 2
+	screen:blit(self.surface, nil, r.x + offset, r.y + offset)
 end
 
 function DecoFrameCaption:apply(widget)

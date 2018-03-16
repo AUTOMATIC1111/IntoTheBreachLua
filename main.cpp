@@ -29,7 +29,7 @@ void render() {
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-	glOrtho(0.0, 640, 480, 0.0, -1.0, 1.0);
+	glOrtho(0.0, 1280, 720, 0.0, -1.0, 1.0);
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 
@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	globalWindow = SDL_CreateWindow("title", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_OPENGL);
+	globalWindow = SDL_CreateWindow("title", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1280, 720, SDL_WINDOW_OPENGL);
 	SDL_GLContext gl_context = SDL_GL_CreateContext(globalWindow);
 
 	SDL::Surface surface("test-tr.png");

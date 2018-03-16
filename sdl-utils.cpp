@@ -207,7 +207,7 @@ Surface::Surface(HWND hwnd) {
 	GetClientRect(hwnd, &frame);
 	ClientToScreen(hwnd, &p);
 
-	setBitmap(hCaptureBitmap, p.x, p.y, min(frame.right, nScreenWidth), min(frame.bottom, nScreenHeight));
+	setBitmap(hCaptureBitmap, p.x, p.y, min(frame.right, nScreenWidth- p.x), min(frame.bottom, nScreenHeight- p.y));
 
 	ReleaseDC(hDesktopWnd, hDesktopDC);
 	DeleteDC(hCaptureDC);
@@ -245,6 +245,8 @@ Surface::Surface(const std::string &filename) {
 
 Surface::Surface(const Font * font, const TextSettings *settings, const std::string &text) {
 	init();
+	int outline = settings->outlineWidth;
+	bool antialias = (settings == NULL || settings->antialias) && outline==0;
 
 	HWND hDesktopWnd = GetDesktopWindow();
 	HDC hDesktopDC = GetDC(hDesktopWnd);
@@ -261,39 +263,41 @@ Surface::Surface(const Font * font, const TextSettings *settings, const std::str
 		Gdiplus::Color::White :
 		Gdiplus::Color::MakeARGB(settings->color.a, settings->color.r, settings->color.g, settings->color.b);
 
-	boundRect.Height = font->font->GetHeight(&graphics);
+	boundRect.Height = font->font->GetHeight(&graphics) + outline * 2;
+	boundRect.Width += outline * 2;
 
 	Gdiplus::Bitmap bitmap((int) ceil(boundRect.Width), (int) ceil(boundRect.Height), PixelFormat32bppARGB);
 	Gdiplus::Graphics *g = Gdiplus::Graphics::FromImage(&bitmap);
 	Gdiplus::SolidBrush brush(color);
 
-	g->SetTextRenderingHint(settings && !settings->antialias ?
-							Gdiplus::TextRenderingHintSingleBitPerPixelGridFit :
-							Gdiplus::TextRenderingHintAntiAlias
+	g->SetTextRenderingHint(antialias ?
+							Gdiplus::TextRenderingHintAntiAlias :
+							Gdiplus::TextRenderingHintSingleBitPerPixelGridFit
 	);
-	g->DrawString(s.c_str(), -1, *font, Gdiplus::PointF(0, 0), &brush);
+	g->DrawString(s.c_str(), -1, *font, Gdiplus::PointF((Gdiplus::REAL) outline, (Gdiplus::REAL) outline), &brush);
 	delete g;
-
+	
 	setBitmap(&bitmap);
 
 	ReleaseDC(hDesktopWnd, hDesktopDC);
 	DeleteDC(hCaptureDC);
+
+	addOutline(outline, &settings->outlineColor);
 }
 
-Surface::Surface(Surface *parent, int levels, Color *color) {
-	init();
+void Surface::addOutline(int levels, const Color *color) {
+	if(levels == 0) return;
 
 	int colorValue = (0xff << 24) | (color->r << 16) | (color->g << 8) | (color->b);
 
-	int w = parent->w();
-	int h = parent->h();
+	int w = surface->w;
+	int h = surface->h;
 
 	unsigned char *data = new unsigned char[w * h * 4];
 	unsigned char *data2 = new unsigned char[w * h * 4];
 
-	SDL_LockSurface(parent->surface);
-	memcpy(data, parent->surface->pixels, 4 * w * h);
-	SDL_UnlockSurface(parent->surface);
+	SDL_LockSurface(surface);
+	memcpy(data, surface->pixels, 4 * w * h);
 
 	for(int i = 0; i < levels; i++) {
 		memcpy(data2, data, 4 * w * h);
@@ -308,7 +312,9 @@ Surface::Surface(Surface *parent, int levels, Color *color) {
 				}
 			}
 		}
-		
+
+		memcpy(data, data2, 4 * w * h);
+
 		for(int y = 0; y < h; y++) {
 			for(int x = 0; x < w; x++) {
 				unsigned char *p = &data[(x + y * w) * 4];
@@ -320,16 +326,67 @@ Surface::Surface(Surface *parent, int levels, Color *color) {
 			}
 		}
 
-		
 		unsigned char *tmp = data;
 		data = data2;
 		data2 = tmp;
 	}
 
-	setBitmap(data, 0, 0, w, h, w*4);
+	memcpy(surface->pixels, data, 4 * w * h);
+	SDL_UnlockSurface(surface);
 
 	delete[] data;
 	delete[] data2;
+}
+
+Surface::Surface(Surface *parent, int levels, Color *color) {
+	init();
+
+	int w = parent->w();
+	int h = parent->h();
+
+	unsigned char *data = new unsigned char[w * h * 4];
+
+	SDL_LockSurface(parent->surface);
+	memcpy(data, parent->surface->pixels, 4 * w * h);
+	SDL_UnlockSurface(parent->surface);
+
+	setBitmap(data, 0, 0, w, h, w * 4);
+
+	delete[] data;
+
+	addOutline(levels, color);
+}
+
+Surface::Surface(int scaling, Surface *parent) {
+	init();
+
+	int w = parent->w();
+	int h = parent->h();
+
+	int neww = w * scaling;
+	int newh = h * scaling;
+
+	Uint32 *data = new Uint32[neww * newh];
+
+	SDL_LockSurface(parent->surface);
+	Uint32 *pixels = (Uint32 *) parent->pixelData;
+
+	for(int x = 0; x < w; x++) {
+		for(int y = 0; y < h; y++) {
+			Uint32 pixel = pixels[x + y * w];
+			for(int x1 = 0; x1 < scaling; x1++) {
+				for(int y1 = 0; y1 < scaling; y1++) {
+					data[(x * scaling + x1) + (y * scaling + y1) * neww] = pixel;
+				}
+			}
+		}
+	}
+
+	SDL_UnlockSurface(parent->surface);
+
+	setBitmap(data, 0, 0, neww, newh, neww * 4);
+
+	delete[] data;
 }
 
 HWND getGameHWND() {

@@ -31,6 +31,9 @@ local h = surf:h() -- height
 -- create a new surface as an existing one with an outline with specified width and color
 local outl = sdl.outlined(surf,1,sdl.color(255,0,0))
 
+-- create a new surface as an existing one, but scaled
+local scaled = sdl.scaled(2, surf)
+
 -- create a new surface by rendering text
 local textsurf = sdl.text(font,textset,"hello!")
 

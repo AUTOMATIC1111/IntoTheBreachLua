@@ -29,8 +29,12 @@ struct TextSettings {
 	Color color;
 	bool antialias;
 
+	Color outlineColor;
+	int outlineWidth;
+
 	TextSettings() {
 		antialias = true;
+		outlineWidth = 0;
 	}
 };
 
@@ -67,6 +71,7 @@ struct Surface {
 	Surface(const std::string &filename);
 	Surface(Surface *parent, int levels, Color *color);
 	Surface(const Font * font, const TextSettings *settings, const std::string &text);
+	Surface(int scaling, Surface *parent);
 
 	int w() {
 		if(surface == NULL) return 0;
@@ -87,6 +92,9 @@ struct Surface {
 	}
 
 	~Surface();
+
+protected:
+	void addOutline(int levels, const Color *color);
 };
 
 struct SurfaceScreenshot :public Surface {
