@@ -67,7 +67,7 @@ struct Surface {
 	void setBitmap(void *data, int x, int y, int w, int h, int stride);
 
 	void init();
-	Surface(HWND hwnd);
+	Surface();
 	Surface(const std::string &filename);
 	Surface(Surface *parent, int levels, Color *color);
 	Surface(const Font * font, const TextSettings *settings, const std::string &text);

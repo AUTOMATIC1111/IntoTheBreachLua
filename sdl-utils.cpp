@@ -163,8 +163,13 @@ void Surface::setBitmap(void *data, int sx, int sy, int w, int h, int stride) {
 	unsigned char *pixels = (unsigned char *) data;
 
 	pixelData = new unsigned char[w * h * 4];
+	int initial = 0;
+	if(stride < 0) {
+		initial = (sy + h - 1) * -stride;
+	}
+
 	for(int y = 0; y < h; y++) {
-		memcpy(&pixelData[y*w * 4], &pixels[sx * 4 + (sy + y) * stride], 4 * w);
+		memcpy(&pixelData[y*w * 4], &pixels[initial + sx * 4 + (sy + y) * stride], 4 * w);
 	}
 
 	Uint32 rmask = 0x00ff0000;
@@ -177,41 +182,6 @@ void Surface::setBitmap(void *data, int sx, int sy, int w, int h, int stride) {
 		::log("Creating surface from bitmap failed: %s", SDL_GetError());
 		exit(1);
 	}
-}
-
-
-Surface::Surface(HWND hwnd) {
-	init();
-
-	int nScreenWidth = GetSystemMetrics(SM_CXSCREEN);
-	int nScreenHeight = GetSystemMetrics(SM_CYSCREEN);
-
-	HWND hDesktopWnd = GetDesktopWindow();
-	HDC hDesktopDC = GetDC(hDesktopWnd);
-	HDC hCaptureDC = CreateCompatibleDC(hDesktopDC);
-	HBITMAP hCaptureBitmap = CreateCompatibleBitmap(hDesktopDC, nScreenWidth, nScreenHeight);
-	SelectObject(hCaptureDC, hCaptureBitmap);
-
-	BitBlt(hCaptureDC, 0, 0, nScreenWidth, nScreenHeight, hDesktopDC, 0, 0, SRCCOPY | CAPTUREBLT);
-
-	BITMAPINFO bmi = { 0 };
-	bmi.bmiHeader.biSize = sizeof(bmi.bmiHeader);
-	bmi.bmiHeader.biWidth = nScreenWidth;
-	bmi.bmiHeader.biHeight = -nScreenHeight;
-	bmi.bmiHeader.biPlanes = 1;
-	bmi.bmiHeader.biBitCount = 32;
-	bmi.bmiHeader.biCompression = BI_RGB;
-
-	RECT frame;
-	POINT p = { 0, 0 };
-	GetClientRect(hwnd, &frame);
-	ClientToScreen(hwnd, &p);
-
-	setBitmap(hCaptureBitmap, p.x, p.y, min(frame.right, nScreenWidth- p.x), min(frame.bottom, nScreenHeight- p.y));
-
-	ReleaseDC(hDesktopWnd, hDesktopDC);
-	DeleteDC(hCaptureDC);
-	DeleteObject(hCaptureBitmap);
 }
 
 void Surface::setBitmap(Gdiplus::Bitmap *bitmap) {
@@ -388,6 +358,9 @@ Surface::Surface(int scaling, Surface *parent) {
 
 	delete[] data;
 }
+Surface::Surface() {
+	init();
+}
 
 HWND getGameHWND() {
 	SDL_Window *window = SDL_GL_GetCurrentWindow();
@@ -400,8 +373,20 @@ HWND getGameHWND() {
 	return wmInfo.info.win.window;
 }
 
-SurfaceScreenshot::SurfaceScreenshot() :Surface(getGameHWND()) {
 
+SurfaceScreenshot::SurfaceScreenshot() {
+	SDL_Window *window = SDL_GL_GetCurrentWindow();
+	if(window == NULL) window = globalWindow;
+
+	int w, h;
+	SDL_GL_GetDrawableSize(window, &w, &h);
+
+	unsigned char* pixels = new unsigned char[4 * w * h];
+	glReadPixels(0, 0, w, h, GL_BGRA, GL_UNSIGNED_BYTE, pixels);
+
+	setBitmap(pixels, 0, 0, w, h, -w * 4);
+
+	delete pixels;
 };
 
 Screen::Screen() {
