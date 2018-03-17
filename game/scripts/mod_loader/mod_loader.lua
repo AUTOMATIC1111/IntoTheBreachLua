@@ -219,7 +219,7 @@ function modApi:selectSquads()
 	local w = screen:w()
 	local h = screen:h()
 	local quit = 0
-	local pointer = sdl.scaled(2,sdl.surface("resources/mods/pointer.png"));
+	local pointer = sdl.scaled(2,sdl.surface("resources/mods/ui/pointer.png"));
 	local mouserect = sdl.rect(sdl.mouse.x(), sdl.mouse.y(), pointer:w(), pointer:h())
 	local screenshot = sdl.screenshot()
 	local bg = sdl.rgba(0,0,0,128)
@@ -230,12 +230,14 @@ function modApi:selectSquads()
 	local framebot = Ui():width(0.4):heightpx(56):pos(0.4,0.7):padding(4):decorate({DecoFrame()})
 	ui:add(framebot)
 
-	local labelcount = Ui():pos(0,0):width(0.1):height(0.6):caption(""):decorate({DecoCaption()})
+	local labelcount = Ui():pos(0,0):width(0.3):height(0.6):caption(""):decorate({DecoCaption()})
 	framebot:add(labelcount)
 	
-	framebot:add(Ui():pos(0,0.6):width(0.2):height(0.4):caption("Total selected"):decorate({DecoCaption(smallfont)}))
+	framebot:add(Ui():pos(0,0.6):width(0.3):height(0.4):caption("Total selected"):decorate({DecoCaption(smallfont)}))
+	
+	framebot:add(Ui():pos(0,1.35):width(1):height(0.4):caption("Hold SHIFT when starting new game to show this dialog again."):decorate({DecoCaption(smallfont)}))
 
-	local buttongo = Ui():pos(0.2,0):width(0.8):height(1):caption("Continue"):decorate({DecoButton(),DecoCaption()})
+	local buttongo = Ui():pos(0.3,0):width(0.7):height(1):caption("Continue"):decorate({DecoButton(),DecoCaption()})
 	framebot:add(buttongo)
 	buttongo.onclicked = function()
 		quit = 1
@@ -261,17 +263,15 @@ function modApi:selectSquads()
 		buttongo.disabled = count > maxselected
 	end
 	
+	local rows = w < 1280 and 1 or 2
+	
 	for i=1,#modApi.squad_icon do
-		local col = (i-1) % 2
-		local row = math.floor((i-1) / 2)
+		local col = (i-1) % rows
+		local row = math.floor((i-1) / rows)
 		
-		local checkbox = UiCheckbox():pos(0.5*col,0.235*row):heightpx(41):width(0.48):decorate(
+		local checkbox = UiCheckbox():pos(0.5*col,-80*row):heightpx(41):width(rows == 1 and 1 or 0.48):decorate(
 			{ DecoButton(), DecoCheckbox(), DecoSurfaceOutlined(sdl.surface(self.squad_icon[i])), DecoText(self.squad_text[(i-1)*2+1]) }
 		)
-		
-		if i <= maxselected then
-			checkbox.checked = true
-		end
 		
 		scrollarea:add( checkbox )
 		
@@ -345,3 +345,4 @@ end
 
 modApi:init()
 mod_loader:init()
+
