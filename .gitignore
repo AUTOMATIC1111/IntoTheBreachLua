@@ -12,3 +12,9 @@ error.txt
 log.txt
 game/lua5.1-original.dll
 game/lua5.1.dll
+game/*.zip
+dll/lua5_1/Debug
+dll/lua5_1/Release
+dll/opengl32/Debug
+dll/opengl32/Release
+

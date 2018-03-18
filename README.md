@@ -1,17 +1,21 @@
 # IntoTheBreachLua
 
-This library works as a proxy for lua5.1.dll for the [Into the Breach] game.
-You rename lua5.1.dll in game directory to lua5.1-original.dll, and put this library in place of it.
-The game loads this library, which loads lua5.1-original.dll, passing calls to any of exported functions to it.
+This library works as a proxy for multiple DLLs for the [Into the Breach](https://subsetgames.com/itb.html) game in order to provide additional functionality to the modding community.
+
+## Installation
+If you downloaded a binary release (an archive with a buch of dlls and folders in it) the installation procedure is as follows:
+1. Install [mod loader](https://subsetgames.com/forum/viewtopic.php?f=26&t=32833&sid=7dae5dbaf729740ce2019cd048c37e99).
+2. Extract evertything from the archive into game directory, overwriting, among others, lua5.1.dll and SDL2.dll.
+
+This is it. Apart from installing API for mods, this will also install squad selection dialog (making it easier to play squads added by other mods).
+
+If you want to only install API and don't want squad selection (for whatever reasons), only extract .dll files from the archive.
 
 ## API
 A number of functions are added to game's lua VMs. A full description of what's added is in [api.md](api.md) file.
 
 ## Error reporting
 Lua errors that happen in game are dumped to error.txt file. If something doesn't work right in your script and the game is being secretive about what exactly, check errors.txt.
-
-## Autoexec
-The game will load and run scripts in the scripts/autoexec directory, in alphabetical order. This happens after in-game script scripts/items.lua is loaded.
 
 ## Overloading lua5.1.dll functions
 This section is for those who wish to overload the functionality of Lua library function that the game uses.
@@ -46,5 +50,3 @@ By default, lua functions are exported using exports.def file with names like ``
 Some functions are already reimplemented in ```lua-hooks.cc```.
 
 If you want to use any of lua functions in your code, you have to reimplement them using the HOOK macro, even if reimplementation does nothing but calls the original.
-
-   [Into the Breach]: <https://subsetgames.com/itb.html>

@@ -98,8 +98,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <TargetName>lua5.1</TargetName>
-    <OutDir>R:\steam\steamapps\common\Into the Breach</OutDir>
+    <TargetName>SDL2</TargetName>
+    <OutDir>R:\steam\steamapps\common\Into the Breach\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-exe|Win32'">
     <LinkIncremental>true</LinkIncremental>
@@ -113,8 +113,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <TargetName>lua5.1</TargetName>
-    <OutDir>R:\steam\steamapps\common\Into the Breach</OutDir>
+    <TargetName>SDL2</TargetName>
+    <OutDir>R:\steam\steamapps\common\Into the Breach\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -224,16 +224,18 @@
     <None Include="exports.def" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="hook.cc" />
     <ClCompile Include="lua-functions.cc" />
     <ClCompile Include="lua5.1.cc" />
     <ClCompile Include="lua-hooks.cc" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="opengl32.cc" />
     <ClCompile Include="sdl-utils.cpp" />
+    <ClCompile Include="sdl-hooks.cpp" />
+    <ClCompile Include="sdl2.cc" />
     <ClCompile Include="utils.cc" />
+    <ClCompile Include="xxhash.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="hook.h" />
     <ClInclude Include="lua-functions.h" />
     <ClInclude Include="lua5.1.h" />
     <ClInclude Include="LuaBridge\detail\CFunctions.h" />
@@ -257,8 +259,11 @@
     <ClInclude Include="lua\lua.h" />
     <ClInclude Include="lua\luaconf.h" />
     <ClInclude Include="lua\lualib.h" />
+    <ClInclude Include="opengl32.h" />
     <ClInclude Include="sdl-utils.h" />
+    <ClInclude Include="sdl2.h" />
     <ClInclude Include="utils.h" />
+    <ClInclude Include="xxhash.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

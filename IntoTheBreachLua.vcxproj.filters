@@ -7,7 +7,10 @@
     <ClCompile Include="utils.cc" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="sdl-utils.cpp" />
-    <ClCompile Include="hook.cc" />
+    <ClCompile Include="sdl-hooks.cpp" />
+    <ClCompile Include="opengl32.cc" />
+    <ClCompile Include="sdl2.cc" />
+    <ClCompile Include="xxhash.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lua-functions.h" />
@@ -69,7 +72,9 @@
     <ClInclude Include="lua\luaconf.h" />
     <ClInclude Include="lua\lualib.h" />
     <ClInclude Include="sdl-utils.h" />
-    <ClInclude Include="hook.h" />
+    <ClInclude Include="opengl32.h" />
+    <ClInclude Include="sdl2.h" />
+    <ClInclude Include="xxhash.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />

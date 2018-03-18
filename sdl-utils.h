@@ -5,6 +5,7 @@
 #include <SDL.h>
 #include <string>
 #include <memory>
+#include <map>
 #include <vector>
 #include "Gdiplus.h"
 
@@ -61,6 +62,7 @@ struct Surface {
 	unsigned char *pixelData;
 	SDL_Surface* surface;
 	GLuint textureId;
+	unsigned long long hash;
 
 	void setBitmap(Gdiplus::Bitmap *bitmap);
 	void setBitmap(HBITMAP hbitmap, int x, int y, int w, int h);
@@ -82,6 +84,8 @@ struct Surface {
 		if(surface == NULL) return 0;
 		return surface->h;
 	}
+
+	bool wasDrawn();
 
 	GLint texture() {
 		if(textureId == 0 && surface != NULL) {
@@ -122,6 +126,7 @@ struct Screen {
 	}
 
 	void begin();
+	void finishWithoutSwapping();
 	void finish();
 
 	void blitRect(Surface *src, Rect *srcRect, Rect *destRect);
@@ -133,6 +138,12 @@ struct Screen {
 protected:
 
 	void applyClipping();
+};
+
+struct DrawHook {
+	DrawHook();
+	~DrawHook();
+	virtual void draw(Screen & screen) = 0;
 };
 
 struct EventLoop {
@@ -163,6 +174,10 @@ int mousey();
 bool isshiftdown();
 
 void log(const std::string & line);
+
+extern std::vector< DrawHook * > hookListDraw;
+extern std::map< GLuint, unsigned long long > texturesMap;
+extern std::map< unsigned long long, int > lastFrameMap;
 
 }
 

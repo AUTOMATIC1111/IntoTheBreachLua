@@ -40,6 +40,10 @@ local textsurf = sdl.text(font,textset,"hello!")
 -- createw a new surface by taking a screenshot of the game window
 local screenshot = sdl.screenshot()
 
+if surf:wasDrawn() then
+    -- wasDrawn() returns true if the image in surface was used by the game to draw
+    -- previous frame. This can be useful to find out game state.
+end
 ```
 
 #### sdl.rect
@@ -91,6 +95,8 @@ local screen = sdl.screen()
 local w = screen:w() -- width
 local h = screen:h() -- height
 
+screen:start() -- all drawing must happen between calls to start() and finish()
+
 screen:blit(surf,rect,x,y) -- draws surface on the screen
                            -- arguments are:
                            --   surface: surface to draw
@@ -103,7 +109,6 @@ screen:drawrect(rect, sdl:rgb(128,128,128)) -- draw a rectangle
 screen:clip(rect) -- prevents pixels outside the rectangle to be changed
 screen:unclip() -- undoes the effect of previous function
 
-screen:start() -- all drawing must happen between calls to start() and finish()
 screen:finish() -- call after drawing a bunch of things to have them appear on game screen
 ```
 The intended approach is to create an sdl.scren object, then do a loop using sdl.eventloop, effectively pausing the game as long as screen object exists. This class does not allow you to draw seamlessly with running game.
@@ -136,6 +141,30 @@ while quit == 0 do
 	screen:blit(pointer, nil, mouserect.x, mouserect.y)
 	screen:finish()
 end
+```
+
+#### sdl.drawHook
+```
+function frameHook(screen)
+	screen:blit(itworks,nil,64,430)
+end
+drawHookPilots = sdl.drawHook(frameHook)
+```
+Registers a function to be called just before a frame is drawn. This function is called with a single argument - an sdl.screen object. You must use that object to draw over what the game drew. screen:begin() and screen:finish() are already called by the library, so don't call them in the hook function.
+As soon as the object is deleted by lua, the hook is removed, so you must put the result of sdl.drawHook() call into some global variable.
+
+Here is an example of code that would draw itworks.png picture whenever a repair skill icon is displayed on screen: ("repair.png" is the repair icon from "img/weapons/repair.png" from resource.dat).
+
+```
+local itworks=sdl.surface(self.resourcePath.."itworks.png")
+local repairIcon=sdl.surface(self.resourcePath.."repair.png")
+function frameHook(screen)
+	if repairIcon:wasDrawn() then
+		screen:blit(itworks,nil,64,430)
+	end
+end
+
+drawHookPilots = sdl.drawHook(frameHook)
 ```
 
 #### sdl.timer

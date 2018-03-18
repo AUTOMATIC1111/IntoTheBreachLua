@@ -16,7 +16,6 @@ int SdlTest(lua_State *L) {
 	return 0;
 }
 
-
 int ListDirectoryFull(lua_State *L, int mode) {
 	const char *dirname = lua_tostring(L, 1);
 
@@ -80,6 +79,18 @@ namespace event{
 	int mousewheel = SDL_MOUSEWHEEL;
 }
 
+struct DrawHook :public SDL::DrawHook {
+	LuaRef ref;
+	
+	DrawHook(LuaRef r) :ref(r){
+		
+	}
+
+	void draw(SDL::Screen &screen) {
+		ref(screen);
+	}
+};
+
 void installFunctions(lua_State *L) {
 	luaL_openlibs(L);
 	
@@ -117,6 +128,7 @@ void installFunctions(lua_State *L) {
 		.addConstructor <void(*) (const std::string & s)>()
 		.addFunction("w", &SDL::Surface::w)
 		.addFunction("h", &SDL::Surface::h)
+		.addFunction("wasDrawn", &SDL::Surface::wasDrawn)
 		.endClass()
 
 		.deriveClass<SDL::Surface, SDL::Surface>("text")
@@ -145,6 +157,10 @@ void installFunctions(lua_State *L) {
 		.addFunction("drawrect", &SDL::Screen::drawrect)
 		.addFunction("clip", &SDL::Screen::clip)
 		.addFunction("unclip", &SDL::Screen::unclip)
+		.endClass()
+
+		.beginClass <DrawHook>("drawHook")
+		.addConstructor <void(*) (LuaRef r)>()
 		.endClass()
 
 		.beginClass <SDL::EventLoop>("eventloop")

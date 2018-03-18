@@ -1,159 +1,152 @@
 #include <windows.h>
-#include "hook.h"
-#include <SDL.h>
-#include <stdio.h>
+#include "opengl32.h"
+#include "sdl2.h"
+#include "sdl-utils.h"
+#include "utils.h"
 #pragma pack(1)
 
-
-static HINSTANCE libHandle = 0;
+static HINSTANCE luaHandle = 0;
 FARPROC luaTable[123] = { 0 };
-
-extern void __cdecl MySDL_GL_SwapWindow(SDL_Window * window) {
-	printf("oops!\n");
-}
 
 BOOL WINAPI DllMain(HINSTANCE hInst, DWORD reason, LPVOID) {
 	if(reason == DLL_PROCESS_DETACH) {
-		FreeLibrary(libHandle);
+		FreeLibrary(luaHandle);
 	}
 
 	if(reason != DLL_PROCESS_ATTACH) {
 		return 1;
 	}
 
-	libHandle = LoadLibraryA("lua5.1-original.dll");
-	if(!libHandle) return false;
+	installSdlHooks();
 
-	/*
-	HINSTANCE libHandle = LoadLibraryA("SDL2.dll");
-	if(!libHandle) return false;
-	FARPROC func = GetProcAddress(libHandle, "SDL_GL_SwapWindow");
-	hookSweep((int) func, MySDL_GL_SwapWindow, NULL);
-	*/
+	luaHandle = LoadLibraryA("lua5.1-original.dll");
+	if(!luaHandle) return false;
 
-	luaTable[0] = GetProcAddress(libHandle, "luaL_addlstring");
-	luaTable[1] = GetProcAddress(libHandle, "luaL_addstring");
-	luaTable[2] = GetProcAddress(libHandle, "luaL_addvalue");
-	luaTable[3] = GetProcAddress(libHandle, "luaL_argerror");
-	luaTable[4] = GetProcAddress(libHandle, "luaL_buffinit");
-	luaTable[5] = GetProcAddress(libHandle, "luaL_callmeta");
-	luaTable[6] = GetProcAddress(libHandle, "luaL_checkany");
-	luaTable[7] = GetProcAddress(libHandle, "luaL_checkinteger");
-	luaTable[8] = GetProcAddress(libHandle, "luaL_checklstring");
-	luaTable[9] = GetProcAddress(libHandle, "luaL_checknumber");
-	luaTable[10] = GetProcAddress(libHandle, "luaL_checkoption");
-	luaTable[11] = GetProcAddress(libHandle, "luaL_checkstack");
-	luaTable[12] = GetProcAddress(libHandle, "luaL_checktype");
-	luaTable[13] = GetProcAddress(libHandle, "luaL_checkudata");
-	luaTable[14] = GetProcAddress(libHandle, "luaL_error");
-	luaTable[15] = GetProcAddress(libHandle, "luaL_findtable");
-	luaTable[16] = GetProcAddress(libHandle, "luaL_getmetafield");
-	luaTable[17] = GetProcAddress(libHandle, "luaL_gsub");
-	luaTable[18] = GetProcAddress(libHandle, "luaL_loadbuffer");
-	luaTable[19] = GetProcAddress(libHandle, "luaL_loadfile");
-	luaTable[20] = GetProcAddress(libHandle, "luaL_loadstring");
-	luaTable[21] = GetProcAddress(libHandle, "luaL_newmetatable");
-	luaTable[22] = GetProcAddress(libHandle, "luaL_newstate");
-	luaTable[23] = GetProcAddress(libHandle, "luaL_openlib");
-	luaTable[24] = GetProcAddress(libHandle, "luaL_openlibs");
-	luaTable[25] = GetProcAddress(libHandle, "luaL_optinteger");
-	luaTable[26] = GetProcAddress(libHandle, "luaL_optlstring");
-	luaTable[27] = GetProcAddress(libHandle, "luaL_optnumber");
-	luaTable[28] = GetProcAddress(libHandle, "luaL_prepbuffer");
-	luaTable[29] = GetProcAddress(libHandle, "luaL_pushresult");
-	luaTable[30] = GetProcAddress(libHandle, "luaL_ref");
-	luaTable[31] = GetProcAddress(libHandle, "luaL_register");
-	luaTable[32] = GetProcAddress(libHandle, "luaL_typerror");
-	luaTable[33] = GetProcAddress(libHandle, "luaL_unref");
-	luaTable[34] = GetProcAddress(libHandle, "luaL_where");
-	luaTable[35] = GetProcAddress(libHandle, "lua_atpanic");
-	luaTable[36] = GetProcAddress(libHandle, "lua_call");
-	luaTable[37] = GetProcAddress(libHandle, "lua_checkstack");
-	luaTable[38] = GetProcAddress(libHandle, "lua_close");
-	luaTable[39] = GetProcAddress(libHandle, "lua_concat");
-	luaTable[40] = GetProcAddress(libHandle, "lua_cpcall");
-	luaTable[41] = GetProcAddress(libHandle, "lua_createtable");
-	luaTable[42] = GetProcAddress(libHandle, "lua_dump");
-	luaTable[43] = GetProcAddress(libHandle, "lua_equal");
-	luaTable[44] = GetProcAddress(libHandle, "lua_error");
-	luaTable[45] = GetProcAddress(libHandle, "lua_gc");
-	luaTable[46] = GetProcAddress(libHandle, "lua_getallocf");
-	luaTable[47] = GetProcAddress(libHandle, "lua_getfenv");
-	luaTable[48] = GetProcAddress(libHandle, "lua_getfield");
-	luaTable[49] = GetProcAddress(libHandle, "lua_gethook");
-	luaTable[50] = GetProcAddress(libHandle, "lua_gethookcount");
-	luaTable[51] = GetProcAddress(libHandle, "lua_gethookmask");
-	luaTable[52] = GetProcAddress(libHandle, "lua_getinfo");
-	luaTable[53] = GetProcAddress(libHandle, "lua_getlocal");
-	luaTable[54] = GetProcAddress(libHandle, "lua_getmetatable");
-	luaTable[55] = GetProcAddress(libHandle, "lua_getstack");
-	luaTable[56] = GetProcAddress(libHandle, "lua_gettable");
-	luaTable[57] = GetProcAddress(libHandle, "lua_gettop");
-	luaTable[58] = GetProcAddress(libHandle, "lua_getupvalue");
-	luaTable[59] = GetProcAddress(libHandle, "lua_insert");
-	luaTable[60] = GetProcAddress(libHandle, "lua_iscfunction");
-	luaTable[61] = GetProcAddress(libHandle, "lua_isnumber");
-	luaTable[62] = GetProcAddress(libHandle, "lua_isstring");
-	luaTable[63] = GetProcAddress(libHandle, "lua_isuserdata");
-	luaTable[64] = GetProcAddress(libHandle, "lua_lessthan");
-	luaTable[65] = GetProcAddress(libHandle, "lua_load");
-	luaTable[66] = GetProcAddress(libHandle, "lua_newstate");
-	luaTable[67] = GetProcAddress(libHandle, "lua_newthread");
-	luaTable[68] = GetProcAddress(libHandle, "lua_newuserdata");
-	luaTable[69] = GetProcAddress(libHandle, "lua_next");
-	luaTable[70] = GetProcAddress(libHandle, "lua_objlen");
-	luaTable[71] = GetProcAddress(libHandle, "lua_pcall");
-	luaTable[72] = GetProcAddress(libHandle, "lua_pushboolean");
-	luaTable[73] = GetProcAddress(libHandle, "lua_pushcclosure");
-	luaTable[74] = GetProcAddress(libHandle, "lua_pushfstring");
-	luaTable[75] = GetProcAddress(libHandle, "lua_pushinteger");
-	luaTable[76] = GetProcAddress(libHandle, "lua_pushlightuserdata");
-	luaTable[77] = GetProcAddress(libHandle, "lua_pushlstring");
-	luaTable[78] = GetProcAddress(libHandle, "lua_pushnil");
-	luaTable[79] = GetProcAddress(libHandle, "lua_pushnumber");
-	luaTable[80] = GetProcAddress(libHandle, "lua_pushstring");
-	luaTable[81] = GetProcAddress(libHandle, "lua_pushthread");
-	luaTable[82] = GetProcAddress(libHandle, "lua_pushvalue");
-	luaTable[83] = GetProcAddress(libHandle, "lua_pushvfstring");
-	luaTable[84] = GetProcAddress(libHandle, "lua_rawequal");
-	luaTable[85] = GetProcAddress(libHandle, "lua_rawget");
-	luaTable[86] = GetProcAddress(libHandle, "lua_rawgeti");
-	luaTable[87] = GetProcAddress(libHandle, "lua_rawset");
-	luaTable[88] = GetProcAddress(libHandle, "lua_rawseti");
-	luaTable[89] = GetProcAddress(libHandle, "lua_remove");
-	luaTable[90] = GetProcAddress(libHandle, "lua_replace");
-	luaTable[91] = GetProcAddress(libHandle, "lua_resume");
-	luaTable[92] = GetProcAddress(libHandle, "lua_setallocf");
-	luaTable[93] = GetProcAddress(libHandle, "lua_setfenv");
-	luaTable[94] = GetProcAddress(libHandle, "lua_setfield");
-	luaTable[95] = GetProcAddress(libHandle, "lua_sethook");
-	luaTable[96] = GetProcAddress(libHandle, "lua_setlevel");
-	luaTable[97] = GetProcAddress(libHandle, "lua_setlocal");
-	luaTable[98] = GetProcAddress(libHandle, "lua_setmetatable");
-	luaTable[99] = GetProcAddress(libHandle, "lua_settable");
-	luaTable[100] = GetProcAddress(libHandle, "lua_settop");
-	luaTable[101] = GetProcAddress(libHandle, "lua_setupvalue");
-	luaTable[102] = GetProcAddress(libHandle, "lua_status");
-	luaTable[103] = GetProcAddress(libHandle, "lua_toboolean");
-	luaTable[104] = GetProcAddress(libHandle, "lua_tocfunction");
-	luaTable[105] = GetProcAddress(libHandle, "lua_tointeger");
-	luaTable[106] = GetProcAddress(libHandle, "lua_tolstring");
-	luaTable[107] = GetProcAddress(libHandle, "lua_tonumber");
-	luaTable[108] = GetProcAddress(libHandle, "lua_topointer");
-	luaTable[109] = GetProcAddress(libHandle, "lua_tothread");
-	luaTable[110] = GetProcAddress(libHandle, "lua_touserdata");
-	luaTable[111] = GetProcAddress(libHandle, "lua_type");
-	luaTable[112] = GetProcAddress(libHandle, "lua_typename");
-	luaTable[113] = GetProcAddress(libHandle, "lua_xmove");
-	luaTable[114] = GetProcAddress(libHandle, "lua_yield");
-	luaTable[115] = GetProcAddress(libHandle, "luaopen_base");
-	luaTable[116] = GetProcAddress(libHandle, "luaopen_debug");
-	luaTable[117] = GetProcAddress(libHandle, "luaopen_io");
-	luaTable[118] = GetProcAddress(libHandle, "luaopen_math");
-	luaTable[119] = GetProcAddress(libHandle, "luaopen_os");
-	luaTable[120] = GetProcAddress(libHandle, "luaopen_package");
-	luaTable[121] = GetProcAddress(libHandle, "luaopen_string");
-	luaTable[122] = GetProcAddress(libHandle, "luaopen_table");
+	installOpenglHooks();
+	
+	luaTable[0] = GetProcAddress(luaHandle, "luaL_addlstring");
+	luaTable[1] = GetProcAddress(luaHandle, "luaL_addstring");
+	luaTable[2] = GetProcAddress(luaHandle, "luaL_addvalue");
+	luaTable[3] = GetProcAddress(luaHandle, "luaL_argerror");
+	luaTable[4] = GetProcAddress(luaHandle, "luaL_buffinit");
+	luaTable[5] = GetProcAddress(luaHandle, "luaL_callmeta");
+	luaTable[6] = GetProcAddress(luaHandle, "luaL_checkany");
+	luaTable[7] = GetProcAddress(luaHandle, "luaL_checkinteger");
+	luaTable[8] = GetProcAddress(luaHandle, "luaL_checklstring");
+	luaTable[9] = GetProcAddress(luaHandle, "luaL_checknumber");
+	luaTable[10] = GetProcAddress(luaHandle, "luaL_checkoption");
+	luaTable[11] = GetProcAddress(luaHandle, "luaL_checkstack");
+	luaTable[12] = GetProcAddress(luaHandle, "luaL_checktype");
+	luaTable[13] = GetProcAddress(luaHandle, "luaL_checkudata");
+	luaTable[14] = GetProcAddress(luaHandle, "luaL_error");
+	luaTable[15] = GetProcAddress(luaHandle, "luaL_findtable");
+	luaTable[16] = GetProcAddress(luaHandle, "luaL_getmetafield");
+	luaTable[17] = GetProcAddress(luaHandle, "luaL_gsub");
+	luaTable[18] = GetProcAddress(luaHandle, "luaL_loadbuffer");
+	luaTable[19] = GetProcAddress(luaHandle, "luaL_loadfile");
+	luaTable[20] = GetProcAddress(luaHandle, "luaL_loadstring");
+	luaTable[21] = GetProcAddress(luaHandle, "luaL_newmetatable");
+	luaTable[22] = GetProcAddress(luaHandle, "luaL_newstate");
+	luaTable[23] = GetProcAddress(luaHandle, "luaL_openlib");
+	luaTable[24] = GetProcAddress(luaHandle, "luaL_openlibs");
+	luaTable[25] = GetProcAddress(luaHandle, "luaL_optinteger");
+	luaTable[26] = GetProcAddress(luaHandle, "luaL_optlstring");
+	luaTable[27] = GetProcAddress(luaHandle, "luaL_optnumber");
+	luaTable[28] = GetProcAddress(luaHandle, "luaL_prepbuffer");
+	luaTable[29] = GetProcAddress(luaHandle, "luaL_pushresult");
+	luaTable[30] = GetProcAddress(luaHandle, "luaL_ref");
+	luaTable[31] = GetProcAddress(luaHandle, "luaL_register");
+	luaTable[32] = GetProcAddress(luaHandle, "luaL_typerror");
+	luaTable[33] = GetProcAddress(luaHandle, "luaL_unref");
+	luaTable[34] = GetProcAddress(luaHandle, "luaL_where");
+	luaTable[35] = GetProcAddress(luaHandle, "lua_atpanic");
+	luaTable[36] = GetProcAddress(luaHandle, "lua_call");
+	luaTable[37] = GetProcAddress(luaHandle, "lua_checkstack");
+	luaTable[38] = GetProcAddress(luaHandle, "lua_close");
+	luaTable[39] = GetProcAddress(luaHandle, "lua_concat");
+	luaTable[40] = GetProcAddress(luaHandle, "lua_cpcall");
+	luaTable[41] = GetProcAddress(luaHandle, "lua_createtable");
+	luaTable[42] = GetProcAddress(luaHandle, "lua_dump");
+	luaTable[43] = GetProcAddress(luaHandle, "lua_equal");
+	luaTable[44] = GetProcAddress(luaHandle, "lua_error");
+	luaTable[45] = GetProcAddress(luaHandle, "lua_gc");
+	luaTable[46] = GetProcAddress(luaHandle, "lua_getallocf");
+	luaTable[47] = GetProcAddress(luaHandle, "lua_getfenv");
+	luaTable[48] = GetProcAddress(luaHandle, "lua_getfield");
+	luaTable[49] = GetProcAddress(luaHandle, "lua_gethook");
+	luaTable[50] = GetProcAddress(luaHandle, "lua_gethookcount");
+	luaTable[51] = GetProcAddress(luaHandle, "lua_gethookmask");
+	luaTable[52] = GetProcAddress(luaHandle, "lua_getinfo");
+	luaTable[53] = GetProcAddress(luaHandle, "lua_getlocal");
+	luaTable[54] = GetProcAddress(luaHandle, "lua_getmetatable");
+	luaTable[55] = GetProcAddress(luaHandle, "lua_getstack");
+	luaTable[56] = GetProcAddress(luaHandle, "lua_gettable");
+	luaTable[57] = GetProcAddress(luaHandle, "lua_gettop");
+	luaTable[58] = GetProcAddress(luaHandle, "lua_getupvalue");
+	luaTable[59] = GetProcAddress(luaHandle, "lua_insert");
+	luaTable[60] = GetProcAddress(luaHandle, "lua_iscfunction");
+	luaTable[61] = GetProcAddress(luaHandle, "lua_isnumber");
+	luaTable[62] = GetProcAddress(luaHandle, "lua_isstring");
+	luaTable[63] = GetProcAddress(luaHandle, "lua_isuserdata");
+	luaTable[64] = GetProcAddress(luaHandle, "lua_lessthan");
+	luaTable[65] = GetProcAddress(luaHandle, "lua_load");
+	luaTable[66] = GetProcAddress(luaHandle, "lua_newstate");
+	luaTable[67] = GetProcAddress(luaHandle, "lua_newthread");
+	luaTable[68] = GetProcAddress(luaHandle, "lua_newuserdata");
+	luaTable[69] = GetProcAddress(luaHandle, "lua_next");
+	luaTable[70] = GetProcAddress(luaHandle, "lua_objlen");
+	luaTable[71] = GetProcAddress(luaHandle, "lua_pcall");
+	luaTable[72] = GetProcAddress(luaHandle, "lua_pushboolean");
+	luaTable[73] = GetProcAddress(luaHandle, "lua_pushcclosure");
+	luaTable[74] = GetProcAddress(luaHandle, "lua_pushfstring");
+	luaTable[75] = GetProcAddress(luaHandle, "lua_pushinteger");
+	luaTable[76] = GetProcAddress(luaHandle, "lua_pushlightuserdata");
+	luaTable[77] = GetProcAddress(luaHandle, "lua_pushlstring");
+	luaTable[78] = GetProcAddress(luaHandle, "lua_pushnil");
+	luaTable[79] = GetProcAddress(luaHandle, "lua_pushnumber");
+	luaTable[80] = GetProcAddress(luaHandle, "lua_pushstring");
+	luaTable[81] = GetProcAddress(luaHandle, "lua_pushthread");
+	luaTable[82] = GetProcAddress(luaHandle, "lua_pushvalue");
+	luaTable[83] = GetProcAddress(luaHandle, "lua_pushvfstring");
+	luaTable[84] = GetProcAddress(luaHandle, "lua_rawequal");
+	luaTable[85] = GetProcAddress(luaHandle, "lua_rawget");
+	luaTable[86] = GetProcAddress(luaHandle, "lua_rawgeti");
+	luaTable[87] = GetProcAddress(luaHandle, "lua_rawset");
+	luaTable[88] = GetProcAddress(luaHandle, "lua_rawseti");
+	luaTable[89] = GetProcAddress(luaHandle, "lua_remove");
+	luaTable[90] = GetProcAddress(luaHandle, "lua_replace");
+	luaTable[91] = GetProcAddress(luaHandle, "lua_resume");
+	luaTable[92] = GetProcAddress(luaHandle, "lua_setallocf");
+	luaTable[93] = GetProcAddress(luaHandle, "lua_setfenv");
+	luaTable[94] = GetProcAddress(luaHandle, "lua_setfield");
+	luaTable[95] = GetProcAddress(luaHandle, "lua_sethook");
+	luaTable[96] = GetProcAddress(luaHandle, "lua_setlevel");
+	luaTable[97] = GetProcAddress(luaHandle, "lua_setlocal");
+	luaTable[98] = GetProcAddress(luaHandle, "lua_setmetatable");
+	luaTable[99] = GetProcAddress(luaHandle, "lua_settable");
+	luaTable[100] = GetProcAddress(luaHandle, "lua_settop");
+	luaTable[101] = GetProcAddress(luaHandle, "lua_setupvalue");
+	luaTable[102] = GetProcAddress(luaHandle, "lua_status");
+	luaTable[103] = GetProcAddress(luaHandle, "lua_toboolean");
+	luaTable[104] = GetProcAddress(luaHandle, "lua_tocfunction");
+	luaTable[105] = GetProcAddress(luaHandle, "lua_tointeger");
+	luaTable[106] = GetProcAddress(luaHandle, "lua_tolstring");
+	luaTable[107] = GetProcAddress(luaHandle, "lua_tonumber");
+	luaTable[108] = GetProcAddress(luaHandle, "lua_topointer");
+	luaTable[109] = GetProcAddress(luaHandle, "lua_tothread");
+	luaTable[110] = GetProcAddress(luaHandle, "lua_touserdata");
+	luaTable[111] = GetProcAddress(luaHandle, "lua_type");
+	luaTable[112] = GetProcAddress(luaHandle, "lua_typename");
+	luaTable[113] = GetProcAddress(luaHandle, "lua_xmove");
+	luaTable[114] = GetProcAddress(luaHandle, "lua_yield");
+	luaTable[115] = GetProcAddress(luaHandle, "luaopen_base");
+	luaTable[116] = GetProcAddress(luaHandle, "luaopen_debug");
+	luaTable[117] = GetProcAddress(luaHandle, "luaopen_io");
+	luaTable[118] = GetProcAddress(luaHandle, "luaopen_math");
+	luaTable[119] = GetProcAddress(luaHandle, "luaopen_os");
+	luaTable[120] = GetProcAddress(luaHandle, "luaopen_package");
+	luaTable[121] = GetProcAddress(luaHandle, "luaopen_string");
+	luaTable[122] = GetProcAddress(luaHandle, "luaopen_table");
 
 	return 1;
 }

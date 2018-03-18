@@ -5,49 +5,23 @@
 #include "lua.h"
 #include "lauxlib.h"
 
-/*
-This library works as a proxy for lua5.1.dll for the Into the Breach videogame.
-You rename lua5.1.dll in game directory to lua5.1-original.dll, and put this library on place of it.
-The game loads this library, and it loads lua5.1-original.dll, passing calls to any of exported functions to it.
 
-The HOOK(name,rettype,args) macro below allows you to write your own wrapper (or implementation) for exported lua functions.
-Here is the example usage:
-
-	HOOK(lua_tolstring, const char *, (lua_State *L, int idx, size_t *len)) {
-		// put your implementation here
-		log("lua_tolstring was called by the game!\n");
-	
-		// this is a call to lua_tolstring function from actual Lua dll.
-		return (*dll_lua_tolstring)(L, idx, len);
-	}
-
-Arguments are:
-	name - The name of lua function, without quotes. It has to be one of about hundred functions explored by the dll,
-		   or you will get compilation errors. Exported functions are loaded into the array luaTable[] when this
-		   library is loaded, and LUA_N_<function-name> definitions below are usedto find out which index in the array
-		   corresponds to the function.
-	rettype - return type of the lua function.
-	args - list of arguments inside parentheses.
-
-Additionaly, a static pointer to pointer to function is created when you use the macro, with name dll_<name>
-(it's named dll_lua_tolstring in example above), and it can be used to call the function from original dll like this:
-
-    (*dll_lua_tolstring)(L, idx, len);
-
-By default, lua functions are exported using exports.def file with names like __E__102__. Those functions are generated
-automatically and are implemented in lua5.1.cpp. When you use the HOOK macro to reimplement one of those functions,
-you have to remove corresponding line from exports.def.
-
-If you want to use any of lua functions in your code, you have to reimplement them using the HOOK macro, even if
-reimplementation does nothing but calls the original.
-
-*/
-
-#define HOOK(name,rettype,args) \
+#define HOOK_LUA(name,rettype,args) \
 static rettype (**dll_##name) args = (rettype (**) args) (void *) &luaTable[ LUA_N_##name ]; \
 extern "C" __declspec(dllexport) rettype name args
 
 extern FARPROC luaTable[];
+
+#define HOOK_GENERIC(dllname,name,rettype,args) \
+struct dll_loader_t_##name{ \
+	HINSTANCE lib; \
+	FARPROC func; \
+	dll_loader_t_##name(){ lib = LoadLibraryA(dllname); func = GetProcAddress(lib, #name); } \
+	~dll_loader_t_##name(){ if(lib) FreeLibrary(lib); } \
+}; \
+static dll_loader_t_##name dll_loader_##name; \
+static rettype (**dll_##name) args = (rettype (**) args) (void *) dll_loader_##name.func; \
+extern "C" __declspec(dllexport) rettype name args
 
 #define LUA_N_luaL_addlstring 0
 #define LUA_N_luaL_addstring 1
@@ -172,6 +146,5 @@ extern FARPROC luaTable[];
 #define LUA_N_luaopen_package 120
 #define LUA_N_luaopen_string 121
 #define LUA_N_luaopen_table 122
-
 
 #endif

@@ -1,15 +1,16 @@
 #include "sdl-utils.h"
 #include "utils.h"
+#include "xxhash.h"
+#include <algorithm>
 
 #include "SDL_syswm.h"
 #include "Gdiplus.h"
 #pragma comment(lib,"Gdiplus.lib")
 
-#pragma comment(lib,"opengl32.lib")
 #include <GL/GL.h>
 #include <GL/GLU.h>
 #include "glext.h"
-
+#pragma comment(lib,"opengl32.lib")
 
 struct GdiPlusHelper {
 	GdiPlusHelper() {
@@ -17,18 +18,21 @@ struct GdiPlusHelper {
 		ULONG_PTR gdiplusToken;
 		Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 	}
-
 } gdiPlusHelper;
 
 extern SDL_Window *globalWindow;
 
 namespace SDL {
 
+std::vector< DrawHook * > hookListDraw;
+std::map< GLuint, unsigned long long > texturesMap;
+std::map< unsigned long long, int > lastFrameMap;
+
 GLuint glTexture(SDL_Surface *_surface) {
 	GLuint texture = 0;
 
 	GLenum texture_format, internal_format, tex_type;
-	texture_format = GL_BGRA;
+	texture_format = GL_RGBA;
 	tex_type = GL_UNSIGNED_INT_8_8_8_8_REV;
 	internal_format = GL_RGBA8;
 
@@ -55,7 +59,6 @@ GLuint glTexture(SDL_Surface *_surface) {
 
 	return texture;
 }
-
 
 Color::Color() {
 	r = 255;
@@ -120,6 +123,7 @@ void Surface::init() {
 	pixelData = NULL;
 	surface = NULL;
 	textureId = 0;
+	hash = 0;
 }
 
 Surface::~Surface() {
@@ -169,12 +173,25 @@ void Surface::setBitmap(void *data, int sx, int sy, int w, int h, int stride) {
 	}
 
 	for(int y = 0; y < h; y++) {
-		memcpy(&pixelData[y*w * 4], &pixels[initial + sx * 4 + (sy + y) * stride], 4 * w);
+		unsigned char *dst = &pixelData[y*w * 4];
+		unsigned char *src = &pixels[initial + sx * 4 + (sy + y) * stride];
+
+		for(int x = 0; x < w; x++) {
+			dst[0] = src[2];
+			dst[1] = src[1];
+			dst[2] = src[0];
+			dst[3] = src[3];
+
+			dst += 4;
+			src += 4;
+		}
 	}
 
-	Uint32 rmask = 0x00ff0000;
+	hash = XXH64(pixelData, w * h * 4, 0);
+
+	Uint32 rmask = 0x000000ff;
 	Uint32 gmask = 0x0000ff00;
-	Uint32 bmask = 0x000000ff;
+	Uint32 bmask = 0x00ff0000;
 	Uint32 amask = 0xff000000;
 	surface = SDL_CreateRGBSurfaceFrom((void*) pixelData, w, h, 32, 4 * w, rmask, gmask, bmask, amask);
 
@@ -362,17 +379,9 @@ Surface::Surface() {
 	init();
 }
 
-HWND getGameHWND() {
-	SDL_Window *window = SDL_GL_GetCurrentWindow();
-	if(window == NULL) window = globalWindow;
-
-	SDL_SysWMinfo wmInfo;
-	SDL_VERSION(&wmInfo.version);
-	SDL_GetWindowWMInfo(window, &wmInfo);
-	
-	return wmInfo.info.win.window;
+bool Surface::wasDrawn() {
+	return lastFrameMap.find(hash) != lastFrameMap.end();
 }
-
 
 SurfaceScreenshot::SurfaceScreenshot() {
 	SDL_Window *window = SDL_GL_GetCurrentWindow();
@@ -410,10 +419,9 @@ void Screen::begin() {
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 }
 
-void Screen::finish() {
+void Screen::finishWithoutSwapping() {
 	glDisable(GL_TEXTURE_2D);
 	glPopMatrix();
 
@@ -421,6 +429,10 @@ void Screen::finish() {
 	glPopMatrix();
 
 	glMatrixMode(GL_MODELVIEW);
+}
+
+void Screen::finish() {
+	finishWithoutSwapping();
 	SDL_GL_SwapWindow(window);
 }
 
@@ -500,6 +512,13 @@ void Screen::applyClipping() {
 		glScissor(rect->x, h - rect->y - rect->h, rect->w, rect->h);
 		glEnable(GL_SCISSOR_TEST);
 	}
+}
+
+DrawHook::DrawHook() {
+	hookListDraw.push_back(this);
+}
+DrawHook::~DrawHook() {
+	hookListDraw.erase(std::remove(hookListDraw.begin(), hookListDraw.end(), this), hookListDraw.end());
 }
 
 bool EventLoop::next() {
