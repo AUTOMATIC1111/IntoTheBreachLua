@@ -56,8 +56,31 @@ rect.w = 200
 rect.h = 400
 ```
 
+#### sdl.event
+An event. The ```event:type()``` function returns a value that can be compared to any of the following:
+```
+sdl.events.quit -- user closed the game window
+sdl.events.keydown -- user pressed a button; call event:keycode() to figure out which
+sdl.events.keyup -- user released a button
+sdl.events.mousebuttondown -- user pressed a mouse button; call event:mousebutton() to know which one
+sdl.events.mousebuttonup -- user released a mouse button
+sdl.events.mousewheel -- user rotated a mouse wheel; call event:wheel() to get direction
+```
+
+Use [SDL Keycode Lookup Table](https://wiki.libsdl.org/SDLKeycodeLookup) with ```event:keycode()``` to figure out which key was pressed/released.
+
+Mouse button codes are:
+
+| Mouse button  | ```event:mousebutton()``` |
+|---------------|---|
+| Left          | 1 |
+| Middle        | 2 |
+| Right         | 3 |
+| X1            | 4 |
+| X2            | 5 |
+
 #### sdl.eventloop
-An even loop helper class that can be used to set up own SDL event loop, independent from game's loop.
+An event loop helper class that can be used to set up own SDL event loop, independent from game's loop.
 ```
 local eventloop = sdl.eventloop();
 while eventloop:next() do
@@ -66,27 +89,23 @@ while eventloop:next() do
 	<...>
 end
 ```
-The ```eventloop:type()``` function returns a value that can be compared to any of the following:
+Has all functions from ```sdl.event``` in addition to ```eventloop:next()```.
+
+#### sdl.eventHook
 ```
-sdl.events.quit -- user closed the game window
-sdl.events.keydown -- user pressed a button; call eventloop:keycode() to figure out which
-sdl.events.keyup -- user released a button
-sdl.events.mousebuttondown -- user pressed a mouse button; call eventloop:mousebutton() to know which one
-sdl.events.mousebuttonup -- user released a mouse button
-sdl.events.mousewheel -- user rotated a mouse wheel; call eventloop:wheel() to get direction
+My_Custom_Event_Hook = sdl.eventHook(function(event)
+	if event:type() == sdl.events.mousebuttondown then
+		if sdl.mouse.x() < 20 and sdl.mouse.y() < 20 then
+			-- this code is executed when user clicks the top left corner of the screen with his mouse
+			messagebox("Well done!")
+			return true
+		end
+		return false
+	end
+end)
 ```
-
-Use [SDL Keycode Lookup Table](https://wiki.libsdl.org/SDLKeycodeLookup) with ```eventloop:keycode()``` to figure out which key was pressed/released.
-
-Mouse button codes are:
-
-| Mouse button  | ```eventloop:mousebutton()``` |
-|---------------|---|
-| Left          | 1 |
-| Middle        | 2 |
-| Right         | 3 |
-| X1            | 4 |
-| X2            | 5 |
+Registers a function to be called whenever an event happens in-game. This function is called with a single argument - an sdl.event object. The function you're registering must return true if you handled the event and don't want the game (or other mods) to know about it. If you return false, the event will be assed to other mods, and then possibly to game.
+As soon as the object returned by `sdl.eventHook()` is deleted by lua, the hook is removed, so you must store the result of `sdl.eventHook()` call into some global variable.
 
 #### sdl.screen
 A helper class that lets you draw on game's screen.
@@ -151,7 +170,7 @@ end
 drawHookPilots = sdl.drawHook(frameHook)
 ```
 Registers a function to be called just before a frame is drawn. This function is called with a single argument - an sdl.screen object. You must use that object to draw over what the game drew. screen:begin() and screen:finish() are already called by the library, so don't call them in the hook function.
-As soon as the object is deleted by lua, the hook is removed, so you must put the result of sdl.drawHook() call into some global variable.
+As soon as the object is deleted by lua, the hook is removed, so you must store the result of sdl.drawHook() call into some global variable.
 
 Here is an example of code that would draw itworks.png picture whenever a repair skill icon is displayed on screen: ("repair.png" is the repair icon from "img/weapons/repair.png" from resource.dat).
 

@@ -146,10 +146,9 @@ struct DrawHook {
 	virtual void draw(Screen & screen) = 0;
 };
 
-struct EventLoop {
+struct Event {
 	SDL_Event event;
-
-	bool next();
+	
 	int type();
 
 	int mousebutton();
@@ -158,6 +157,16 @@ struct EventLoop {
 
 	int wheely();
 	int keycode();
+};
+
+struct EventHook {
+	EventHook();
+	~EventHook();
+	virtual bool handle(Event & evt) = 0; // return true if event has been handled and should not be sent to game
+};
+
+struct EventLoop :public Event{
+	bool next();
 };
 
 struct Timer {
@@ -176,6 +185,7 @@ bool isshiftdown();
 void log(const std::string & line);
 
 extern std::vector< DrawHook * > hookListDraw;
+extern std::vector< EventHook * > hookListEvents;
 extern std::map< GLuint, unsigned long long > texturesMap;
 extern std::map< unsigned long long, int > lastFrameMap;
 

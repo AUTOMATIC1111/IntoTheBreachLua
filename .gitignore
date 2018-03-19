@@ -10,8 +10,7 @@ x64/*
 .vs/*
 error.txt
 log.txt
-game/lua5.1-original.dll
-game/lua5.1.dll
+game/*.dll
 game/*.zip
 dll/lua5_1/Debug
 dll/lua5_1/Release

@@ -20,6 +20,15 @@ function mod_loader:init()
 	
 	--Ideally we want to load only after opening a save so that we can handle mod configurations but without a way to modify the UI that's probably impossible :(
 	self:loadModContent(self:getModContentDefaults(),savedOrder)
+	
+	-- add a hook for drawing cursor over mods' custom ui
+	if sdl then
+		local cursor=sdl.surface("resources/mods/ui/pointer-noshadow.png")
+		
+		C_HOOK_Draw_Cursor = sdl.drawHook(function(screen)
+			screen:blit(cursor,nil,sdl.mouse.x(),sdl.mouse.y())
+		end)
+	end
 end
 
 function mod_loader:enumerateMods()

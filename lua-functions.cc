@@ -81,13 +81,35 @@ namespace event{
 
 struct DrawHook :public SDL::DrawHook {
 	LuaRef ref;
-	
-	DrawHook(LuaRef r) :ref(r){
-		
+
+	DrawHook(LuaRef r) :ref(r) {
+
 	}
 
 	void draw(SDL::Screen &screen) {
-		ref(screen);
+		try {
+			ref(screen);
+		} catch(luabridge::LuaException const& e) {
+			error("%s\n", e.what());
+		}
+	}
+};
+
+struct EventHook :public SDL::EventHook {
+	LuaRef ref;
+
+	EventHook(LuaRef r) :ref(r) {
+
+	}
+
+	bool handle(SDL::Event &evt) {
+		try {
+			return ref(evt);
+		} catch(luabridge::LuaException const& e) {
+			error("%s\n", e.what());
+
+			return false;
+		}
 	}
 };
 
@@ -163,18 +185,25 @@ void installFunctions(lua_State *L) {
 		.addConstructor <void(*) (LuaRef r)>()
 		.endClass()
 
-		.beginClass <SDL::EventLoop>("eventloop")
+		.beginClass <EventHook>("eventHook")
+		.addConstructor <void(*) (LuaRef r)>()
+		.endClass()
+		
+		.beginClass <SDL::Event>("event")
 		.addConstructor <void(*) ()>()
-		.addFunction("next", &SDL::EventLoop::next)
-		.addFunction("type", &SDL::EventLoop::type)
-		.addFunction("x", &SDL::EventLoop::x)
-		.addFunction("y", &SDL::EventLoop::y)
-		.addFunction("wheel", &SDL::EventLoop::wheely)
-		.addFunction("keycode", &SDL::EventLoop::keycode)
-		.addFunction("mousebutton", &SDL::EventLoop::mousebutton)
+		.addFunction("type", &SDL::Event::type)
+		.addFunction("x", &SDL::Event::x)
+		.addFunction("y", &SDL::Event::y)
+		.addFunction("wheel", &SDL::Event::wheely)
+		.addFunction("keycode", &SDL::Event::keycode)
+		.addFunction("mousebutton", &SDL::Event::mousebutton)
 		.endClass()
 
-
+		.deriveClass <SDL::EventLoop, SDL::Event>("eventloop")
+		.addConstructor <void(*) ()>()
+		.addFunction("next", &SDL::EventLoop::next)
+		.endClass()
+	
 		.beginClass <SDL::Rect>("rect")
 		.addConstructor <void(*) (int, int, int, int)>()
 		.addData("x", &SDL::Rect::x)

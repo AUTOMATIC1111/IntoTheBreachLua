@@ -30,6 +30,33 @@ HOOK_SDL(SDL_GL_SwapWindow, void, (SDL_Window * window)) {
 	return (*dll_SDL_GL_SwapWindow)(window);
 }
 
+HOOK_SDL(SDL_PollEvent, int, (SDL_Event *evt)) {
+	if(SDL::hookListEvents.empty()) {
+		return (*dll_SDL_PollEvent)(evt);
+	}
+
+	while(1) {
+		int ret = (*dll_SDL_PollEvent)(evt);
+		if(ret == 0) return 0;
+
+		SDL::Event eventObject;
+		eventObject.event = *evt;
+
+		bool handled = false;
+		for(SDL::EventHook *hook : SDL::hookListEvents) {
+			if(hook->handle(eventObject)) {
+				handled = true;
+				break;
+			}
+		}
+
+		if(!handled) {
+			return 1;
+		}
+	}
+}
+
+
 static GLuint currentBoundTexture;
 static GLuint currentUsedTexture;
 

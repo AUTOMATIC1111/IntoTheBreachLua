@@ -25,6 +25,7 @@ extern SDL_Window *globalWindow;
 namespace SDL {
 
 std::vector< DrawHook * > hookListDraw;
+std::vector< EventHook * > hookListEvents;
 std::map< GLuint, unsigned long long > texturesMap;
 std::map< unsigned long long, int > lastFrameMap;
 
@@ -437,6 +438,8 @@ void Screen::finish() {
 }
 
 void Screen::blitRect(Surface *src, Rect *srcRect, Rect *destRect) {
+	if(src == NULL) return;
+
 	int x1 = destRect->x;
 	int y1 = destRect->y;
 	int x2 = destRect->x + destRect->w;
@@ -455,6 +458,8 @@ void Screen::blitRect(Surface *src, Rect *srcRect, Rect *destRect) {
 }
 
 void Screen::blit(Surface *src, Rect *srcRect, int destx, int desty) {
+	if(src == NULL) return;
+	
 	Rect destRect = { destx, desty, src->w(), src->h() };
 
 	blitRect(src, srcRect, &destRect);
@@ -521,6 +526,13 @@ DrawHook::~DrawHook() {
 	hookListDraw.erase(std::remove(hookListDraw.begin(), hookListDraw.end(), this), hookListDraw.end());
 }
 
+EventHook::EventHook() {
+	hookListEvents.push_back(this);
+}
+EventHook::~EventHook() {
+	hookListEvents.erase(std::remove(hookListEvents.begin(), hookListEvents.end(), this), hookListEvents.end());
+}
+
 bool EventLoop::next() {
 	if(SDL_PollEvent(&event) == 0)
 		return false;
@@ -528,26 +540,26 @@ bool EventLoop::next() {
 	return true;
 }
 
-int EventLoop::type() {
+int Event::type() {
 	return event.type;
 }
 
-int EventLoop::mousebutton() {
+int Event::mousebutton() {
 	return event.button.button;
 }
 
-int EventLoop::x() {
+int Event::x() {
 	return event.motion.x;
 }
 
-int EventLoop::y() {
+int Event::y() {
 	return event.motion.y;
 }
 
-int EventLoop::wheely() {
+int Event::wheely() {
 	return event.wheel.y;
 }
-int EventLoop::keycode() {
+int Event::keycode() {
 	return event.key.keysym.sym;
 }
 

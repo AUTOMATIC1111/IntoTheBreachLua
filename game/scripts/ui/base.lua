@@ -47,6 +47,14 @@ function Ui:add(child)
 	return self
 end
 
+function Ui:addTo(parent)
+	if parent == nul then return self end
+	
+	parent:add(self)
+	
+	return self
+end
+
 function Ui:setroot(root)
 	self.root = root
 	

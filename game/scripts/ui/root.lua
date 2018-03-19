@@ -19,16 +19,17 @@ function UiRoot:event(eventloop)
 	local my = sdl.mouse.y();
 	
 	if type == sdl.events.mousewheel then
-		self:wheel(mx,my,eventloop:wheel())
+		return self:wheel(mx,my,eventloop:wheel())
 	end
 
 	if type == sdl.events.mousebuttondown then
-		self:mousedown(mx, my)
+		return self:mousedown(mx, my)
 	end
 	
 	if type == sdl.events.mousebuttonup then
-		self:mouseup(mx, my)
+		local res = self:mouseup(mx, my)
 		self.pressedchild = nil
+		return res
 	end
 	
 	if type == sdl.events.mousemotion then
@@ -37,6 +38,6 @@ function UiRoot:event(eventloop)
 		end
 		self.hoveredchild = nil
 		
-		self:mousemove(mx, my)
+		return self:mousemove(mx, my)
 	end
 end
