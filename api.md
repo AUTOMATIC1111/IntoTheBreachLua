@@ -104,7 +104,7 @@ My_Custom_Event_Hook = sdl.eventHook(function(event)
 	end
 end)
 ```
-Registers a function to be called whenever an event happens in-game. This function is called with a single argument - an sdl.event object. The function you're registering must return true if you handled the event and don't want the game (or other mods) to know about it. If you return false, the event will be assed to other mods, and then possibly to game.
+Registers a function to be called whenever an event happens in-game. This function is called with a single argument - an sdl.event object. The function you're registering must return true if you handled the event and don't want the game (or other mods) to know about it. If you return false, the event will be passed to other mods, and then possibly to game.
 As soon as the object returned by `sdl.eventHook()` is deleted by lua, the hook is removed, so you must store the result of `sdl.eventHook()` call into some global variable.
 
 #### sdl.screen
