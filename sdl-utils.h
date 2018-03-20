@@ -9,6 +9,8 @@
 #include <vector>
 #include "Gdiplus.h"
 
+#include "blob.h"
+
 #include <GL/GL.h>
 #include <GL/GLU.h>
 
@@ -56,6 +58,9 @@ struct FileFont :public Font {
 	Gdiplus::PrivateFontCollection privateFontCollection;
 
 	FileFont(const std::string &filename, double size);
+	FileFont(const Blob *blob, double size);
+
+	void init(double size);
 };
 
 struct Surface {
@@ -67,13 +72,17 @@ struct Surface {
 	void setBitmap(Gdiplus::Bitmap *bitmap);
 	void setBitmap(HBITMAP hbitmap, int x, int y, int w, int h);
 	void setBitmap(void *data, int x, int y, int w, int h, int stride);
+	void setBitmapWithoutReshuffle(void *data, int x, int y, int w, int h, int stride);
+	void createSurfaceFromPixelData(int w, int h);
 
 	void init();
 	Surface();
 	Surface(const std::string &filename);
 	Surface(Surface *parent, int levels, Color *color);
-	Surface(const Font * font, const TextSettings *settings, const std::string &text);
+	Surface(const Font *font, const TextSettings *settings, const std::string &text);
 	Surface(int scaling, Surface *parent);
+	Surface(Blob *blob);
+	Surface(Surface *parent, std::vector<Color *> colormap);
 
 	int w() {
 		if(surface == NULL) return 0;
@@ -100,7 +109,12 @@ struct Surface {
 protected:
 	void addOutline(int levels, const Color *color);
 };
-
+static std::vector<Color *> testMap() {
+	std::vector<Color *> list;
+	list.push_back(new Color(136, 126, 68));
+	list.push_back(new Color(255, 0, 0));
+	return list;
+}
 struct SurfaceScreenshot :public Surface {
 	SurfaceScreenshot();
 };
@@ -181,6 +195,8 @@ int mousex();
 int mousey();
 
 bool isshiftdown();
+
+double mtime(const std::string filename);
 
 void log(const std::string & line);
 

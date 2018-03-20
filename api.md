@@ -6,6 +6,19 @@ local color = sdl.rgba(r,g,b,a) -- all values are 0-255
 local color = sdl.rgb(r,g,b) -- all values are 0-255
 ```
 
+#### sdl.resourceDat
+A reader for .dat files (game stores a lot of its assets in resources/resource.dat).
+```
+local resourceDat = sdl.resourceDat("resources/resource.dat")
+resourceDat:reload() -- this causes file index to be reloaded, and has to be called every time you edit the .dat file
+```
+
+### sdl.blob
+Respresents a blob of data stored in memory.
+```
+local blob = sdl.blobFromFile("test.png") -- reads file test.png in game directory
+local blobFont = sdl.blobFromResourceDat(resourceDat,"fonts/Justin13.ttf") -- reads file fonts/Justin13.ttf from resource.dat archive
+
 #### sdl.textsettings
 Represents settings for text drawing.
 ```
@@ -18,7 +31,8 @@ textset.color = sdl.rgb(255,255,255) -- text color
 Represents font for text drawing.
 ```
 local font = sdl.font("Courier",18) -- arguments are font family name and size
-local smallfont = sdl.filefont("resources/mods/JustinFont8.ttf",12);
+local smallfont = sdl.filefont("resources/mods/JustinFont8.ttf",12)
+local largefont = sdl.filefontFromBlob(sdl.blobFromResourceDat(resourceDat,"fonts/Justin15.ttf"),18)
 ```
 
 #### sdl.surface
@@ -27,6 +41,9 @@ An image in memory.
 local surf = sdl.surface("icon.png")
 local w = surf:w() -- width
 local h = surf:h() -- height
+
+-- create a new surface by reading an image file from resource.dat
+local surface = sdl.surfaceFromBlob(sdl.blobFromResourceDat(resourceDat,"img/units/player/mech_punch_ns.png"))
 
 -- create a new surface as an existing one with an outline with specified width and color
 local outl = sdl.outlined(surf,1,sdl.color(255,0,0))

@@ -109,15 +109,18 @@ function modApi:resetModContent()
 		"Hazardous Mechs",
 		"These Mechs have spectacular damage output but rely on nanobots feeding off dead Vek to stay alive.",
 	}
+	
+	self.resourceDat = sdl.resourceDat("resources/resource.dat")
+	
 	self.squad_icon = {
-		"resources/mods/squads/mech_punch_ns.png",
-		"resources/mods/squads/mech_jet_ns.png",
-		"resources/mods/squads/mech_laser_ns.png",
-		"resources/mods/squads/mech_electric_ns.png",
-		"resources/mods/squads/mech_judo_ns.png",
-		"resources/mods/squads/mech_flame_ns.png",
-		"resources/mods/squads/mech_guard_ns.png",
-		"resources/mods/squads/mech_leap_ns.png",
+		"img/units/player/mech_punch_ns.png",
+		"img/units/player/mech_jet_ns.png",
+		"img/units/player/mech_laser_ns.png",
+		"img/units/player/mech_electric_ns.png",
+		"img/units/player/mech_judo_ns.png",
+		"img/units/player/mech_flame_ns.png",
+		"img/units/player/mech_guard_ns.png",
+		"img/units/player/mech_leap_ns.png",
 	}
 	self.nextTurnHooks = {}
 	self.missionUpdateHooks = {}

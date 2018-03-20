@@ -224,6 +224,7 @@
     <None Include="exports.def" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="blob.cc" />
     <ClCompile Include="lua-functions.cc" />
     <ClCompile Include="lua5.1.cc" />
     <ClCompile Include="lua-hooks.cc" />
@@ -236,6 +237,7 @@
     <ClCompile Include="xxhash.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="blob.h" />
     <ClInclude Include="lua-functions.h" />
     <ClInclude Include="lua5.1.h" />
     <ClInclude Include="LuaBridge\detail\CFunctions.h" />

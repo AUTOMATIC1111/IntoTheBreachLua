@@ -16,8 +16,8 @@ local function textset(color,outlineColor,outlineWidth)
 	return res
 end
 
-local justin13 = sdl.filefont("resources/mods/Justin13.ttf",13)
-local justin15 = sdl.filefont("resources/mods/Justin15.ttf",18)
+local justin13 = sdlext.font("fonts/Justin13.ttf",13)
+local justin15 = sdlext.font("fonts/Justin15.ttf",18)
 
 local uifont = {
 	default = {

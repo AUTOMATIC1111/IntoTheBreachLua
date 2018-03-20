@@ -100,8 +100,19 @@ Font::Font(const std::string &name, double size) {
 	font.reset(new Gdiplus::Font(s2ws(name).c_str(), (Gdiplus::REAL) size, Gdiplus::UnitPoint));
 }
 
+FileFont::FileFont(const Blob *blob, double size) {
+	privateFontCollection.AddMemoryFont(blob->data, blob->length);
+
+	init(size);
+}
+
 FileFont::FileFont(const std::string &filename, double size) {
 	privateFontCollection.AddFontFile(s2ws(filename).c_str());
+
+	init(size);
+}
+
+void FileFont::init(double size) {
 	int count = privateFontCollection.GetFamilyCount();
 
 	int found = 0;
@@ -188,6 +199,26 @@ void Surface::setBitmap(void *data, int sx, int sy, int w, int h, int stride) {
 		}
 	}
 
+	createSurfaceFromPixelData(w, h);
+}
+
+void Surface::setBitmapWithoutReshuffle(void *data, int sx, int sy, int w, int h, int stride) {
+	unsigned char *pixels = (unsigned char *) data;
+
+	pixelData = new unsigned char[w * h * 4];
+	int initial = 0;
+	if(stride < 0) {
+		initial = (sy + h - 1) * -stride;
+	}
+
+	for(int y = 0; y < h; y++) {
+		memcpy(&pixelData[y*w * 4], &pixels[initial + sx * 4 + (sy + y) * stride],w*4);
+	}
+
+	createSurfaceFromPixelData(w, h);
+}
+
+void Surface::createSurfaceFromPixelData(int w, int h){
 	hash = XXH64(pixelData, w * h * 4, 0);
 
 	Uint32 rmask = 0x000000ff;
@@ -229,6 +260,42 @@ Surface::Surface(const std::string &filename) {
 	setBitmap(bitmap);
 
 	delete bitmap;
+}
+
+/*
+#include "Shlwapi.h"
+#pragma comment(lib,"Shlwapi.lib")
+
+Surface::Surface(const Blob *blob) {
+	init();
+
+	IStream* stream = SHCreateMemStream(blob->data, blob->length);
+	Gdiplus::Bitmap *bitmap = Gdiplus::Bitmap::FromStream(stream, false);
+	if(bitmap == NULL) {
+		::log("couldn't open picture from blob\n", blob->source.c_str());
+		exit(1);
+	}
+
+	setBitmap(bitmap);
+
+	delete bitmap;
+	stream->Release();
+}
+*/
+Surface::Surface(Blob *blob) {
+	init();
+
+	Gdiplus::Bitmap *bitmap = Gdiplus::Bitmap::FromStream(blob, false);
+	if(bitmap == NULL) {
+		::log("couldn't open picture from blob\n", blob->source.c_str());
+		exit(1);
+	}
+
+	setBitmap(bitmap);
+
+	delete bitmap;
+
+	blob->reset();
 }
 
 Surface::Surface(const Font * font, const TextSettings *settings, const std::string &text) {
@@ -376,6 +443,51 @@ Surface::Surface(int scaling, Surface *parent) {
 
 	delete[] data;
 }
+
+Surface::Surface(Surface *parent, std::vector<Color *> colormap) {
+	init();
+
+	std::map<Uint32, Uint32> map;
+	for(unsigned int i = 0; i + 1 < colormap.size(); i += 2) {
+		Color *from = colormap[i];
+		Color *to = colormap[i+1];
+
+		Uint32 fromPx = from->r | (from->g << 8) | (from->b << 16);
+		Uint32 toPx = to->r | (to->g << 8) | (to->b << 16);
+
+		map[fromPx] = toPx;
+	}
+
+	int w = parent->w();
+	int h = parent->h();
+
+	Uint32 *data = new Uint32[w * h];
+
+	SDL_LockSurface(parent->surface);
+	Uint32 *pixels = (Uint32 *) parent->pixelData;
+
+	for(int x = 0; x < w; x++) {
+		for(int y = 0; y < h; y++) {
+			Uint32 pixel = pixels[x + y * w];
+
+			Uint32 color = pixel & 0x00ffffff;
+			auto iter = map.find(color);
+			if(iter != map.end()) {
+				Uint32 alpha = pixel & 0xff000000;
+				data[x + y * w] = iter->second | alpha;
+			} else {
+				data[x + y * w] = pixel;
+			}
+		}
+	}
+
+	SDL_UnlockSurface(parent->surface);
+
+	setBitmapWithoutReshuffle(data, 0, 0, w, h, w * 4);
+
+	delete[] data;
+}
+
 Surface::Surface() {
 	init();
 }
@@ -588,6 +700,13 @@ void log(const std::string & line) {
 
 bool isshiftdown() {
 	return (GetAsyncKeyState(VK_SHIFT) & 0x8000) == 0x8000;
+}
+
+double mtime(const std::string filename) {
+	struct stat st = { 0 }; 
+	stat(filename.c_str(), &st);
+
+	return (double) st.st_mtime;
 }
 
 Timer::Timer() {

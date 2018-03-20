@@ -115,7 +115,7 @@ struct EventHook :public SDL::EventHook {
 
 void installFunctions(lua_State *L) {
 	luaL_openlibs(L);
-	
+
 	getGlobalNamespace(L)
 		.beginNamespace("sdl")
 
@@ -128,6 +128,23 @@ void installFunctions(lua_State *L) {
 
 		.deriveClass<SDL::Color, SDL::Color>("rgb")
 		.addConstructor <void(*) (int r, int g, int b)>()
+		.endClass()
+
+		.beginClass<ResourceDatFile>("resourceDat")
+		.addConstructor <void(*) (const std::string & filename)>()
+		.addFunction("reload", &ResourceDatFile::reload)
+		.endClass()
+
+		.beginClass<Blob>("blob")
+		.addData("length", &Blob::length, false)
+		.endClass()
+
+		.deriveClass<BlobFromFile, Blob>("blobFromFile")
+		.addConstructor <void(*) (const std::string & filename)>()
+		.endClass()
+
+		.deriveClass<BlobFromResourceDat, Blob>("blobFromResourceDat")
+		.addConstructor <void(*) (const ResourceDatFile *dat, const std::string & filename)>()
 		.endClass()
 
 		.beginClass <SDL::TextSettings>("textsettings")
@@ -146,11 +163,19 @@ void installFunctions(lua_State *L) {
 		.addConstructor <void(*) (const std::string & name, double size)>()
 		.endClass()
 
+		.deriveClass <SDL::FileFont, SDL::Font>("filefontFromBlob")
+		.addConstructor <void(*) (const Blob *blob, double size)>()
+		.endClass()
+
 		.beginClass <SDL::Surface>("surface")
 		.addConstructor <void(*) (const std::string & s)>()
 		.addFunction("w", &SDL::Surface::w)
 		.addFunction("h", &SDL::Surface::h)
 		.addFunction("wasDrawn", &SDL::Surface::wasDrawn)
+		.endClass()
+
+		.deriveClass<SDL::Surface, SDL::Surface>("surfaceFromBlob")
+		.addConstructor <void(*) (Blob *blob)>()
 		.endClass()
 
 		.deriveClass<SDL::Surface, SDL::Surface>("text")
@@ -188,7 +213,7 @@ void installFunctions(lua_State *L) {
 		.beginClass <EventHook>("eventHook")
 		.addConstructor <void(*) (LuaRef r)>()
 		.endClass()
-		
+
 		.beginClass <SDL::Event>("event")
 		.addConstructor <void(*) ()>()
 		.addFunction("type", &SDL::Event::type)
@@ -203,7 +228,7 @@ void installFunctions(lua_State *L) {
 		.addConstructor <void(*) ()>()
 		.addFunction("next", &SDL::EventLoop::next)
 		.endClass()
-	
+
 		.beginClass <SDL::Rect>("rect")
 		.addConstructor <void(*) (int, int, int, int)>()
 		.addData("x", &SDL::Rect::x)
@@ -236,12 +261,14 @@ void installFunctions(lua_State *L) {
 
 		.addFunction("isshiftdown", SDL::isshiftdown)
 		
+		.addFunction("mtime", SDL::mtime)
+
 		.endNamespace();
 }
 
 void installAutoexec(lua_State *L) {
 	std::vector<std::string> items;
-	
+
 	listDir("scripts/autoexec", [&](const std::string &filename, bool isDir) {
 		if(!isDir) items.emplace_back(filename);
 	});
