@@ -18,6 +18,7 @@ Respresents a blob of data stored in memory.
 ```
 local blob = sdl.blobFromFile("test.png") -- reads file test.png in game directory
 local blobFont = sdl.blobFromResourceDat(resourceDat,"fonts/Justin13.ttf") -- reads file fonts/Justin13.ttf from resource.dat archive
+```
 
 #### sdl.textsettings
 Represents settings for text drawing.
