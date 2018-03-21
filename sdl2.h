@@ -6,8 +6,12 @@
 bool installSdlHooks();
 
 #define HOOK_SDL(name,rettype,args) \
-static rettype (**dll_##name) args = (rettype (**) args) (void *) &sdl2Table[ SDL_N_##name ]; \
+rettype (**dll_##name) args = (rettype (**) args) (void *) &sdl2Table[ SDL_N_##name ]; \
 extern "C" __declspec(dllexport) rettype hook_##name args
+
+#define DECLARE_HOOK_SDL(name,rettype,args) \
+extern rettype (** dll_##name) args; \
+extern "C" rettype hook_##name args;
 
 extern FARPROC sdl2Table[];
 

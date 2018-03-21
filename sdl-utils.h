@@ -16,7 +16,7 @@
 
 namespace SDL {
 
-GLuint glTexture(SDL_Surface *surface);
+GLuint glTexture(unsigned char *pixelData, int w, int h);
 
 struct Color :public SDL_Color {
 	Color();
@@ -65,14 +65,13 @@ struct FileFont :public Font {
 
 struct Surface {
 	unsigned char *pixelData;
-	SDL_Surface* surface;
 	GLuint textureId;
 	unsigned long long hash;
+	int width, height;
 
 	void setBitmap(Gdiplus::Bitmap *bitmap);
 	void setBitmap(HBITMAP hbitmap, int x, int y, int w, int h);
 	void setBitmap(void *data, int x, int y, int w, int h, int stride);
-	void setBitmapWithoutReshuffle(void *data, int x, int y, int w, int h, int stride);
 	void createSurfaceFromPixelData(int w, int h);
 
 	void init();
@@ -85,26 +84,26 @@ struct Surface {
 	Surface(Surface *parent, std::vector<Color *> colormap);
 
 	int w() {
-		if(surface == NULL) return 0;
-		return surface->w;
+		return width;
 	}
 
 	int h() {
-		if(surface == NULL) return 0;
-		return surface->h;
+		return height;
 	}
 
 	bool wasDrawn();
 
 	GLint texture() {
-		if(textureId == 0 && surface != NULL) {
-			textureId = glTexture(surface);
+		if(textureId == 0 && isValid()) {
+			textureId = glTexture(pixelData, width, height);
 		}
 
 		return textureId;
 	}
 
 	~Surface();
+
+	bool isValid();
 
 protected:
 	void addOutline(int levels, const Color *color);

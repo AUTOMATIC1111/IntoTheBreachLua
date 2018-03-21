@@ -35,6 +35,12 @@ int error(char *fmt, ...) {
 	return 0;
 }
 
+void panic(const std::string & message) {
+	error("%s\n", message.c_str());
+
+	MessageBoxW(NULL, s2ws(message).c_str(), L"Error", MB_OK);
+}
+
 std::string format(const char *fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);

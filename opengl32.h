@@ -6,8 +6,13 @@
 bool installOpenglHooks();
 
 #define HOOK_OPENGL(name,rettype,args) \
-static rettype (__stdcall *  * dll_##name) args = (rettype (__stdcall **) args) (void *) &opengl32Table[ OPENGL_N_##name ]; \
+rettype (__stdcall ** dll_##name) args = (rettype (__stdcall **) args) (void *) &opengl32Table[ OPENGL_N_##name ]; \
 extern "C" __declspec(dllexport) rettype __stdcall hook_##name args
+
+#define DECLARE_HOOK_OPENGL(name,rettype,args) \
+extern rettype (__stdcall ** dll_##name) args; \
+extern "C" rettype __stdcall hook_##name args;
+
 
 extern FARPROC opengl32Table[];
 

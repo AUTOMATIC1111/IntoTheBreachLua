@@ -90,7 +90,7 @@ struct DrawHook :public SDL::DrawHook {
 		try {
 			ref(screen);
 		} catch(luabridge::LuaException const& e) {
-			error("%s\n", e.what());
+			panic(e.what());
 		}
 	}
 };
@@ -106,10 +106,31 @@ struct EventHook :public SDL::EventHook {
 		try {
 			return ref(evt);
 		} catch(luabridge::LuaException const& e) {
-			error("%s\n", e.what());
+			panic(e.what());
 
 			return false;
 		}
+	}
+};
+
+static std::vector<SDL::Color *> createColormapFromLua(LuaRef & r) {
+	std::vector<SDL::Color *> res;
+	
+	try {
+		for(int i = 1; i <= r.length(); i++) {
+			SDL::Color *a = r[i].cast<SDL::Color *>();
+			res.push_back(a);
+		}
+	} catch(luabridge::LuaException const& e) {
+		panic(e.what());
+	}
+
+	return res;
+}
+
+struct SurfaceColorMapped :public SDL::Surface {
+	SurfaceColorMapped(SDL::Surface *parent, LuaRef r) :SDL::Surface(parent, createColormapFromLua(r)) {
+	
 	}
 };
 
@@ -188,6 +209,11 @@ void installFunctions(lua_State *L) {
 
 		.deriveClass<SDL::Surface, SDL::Surface>("scaled")
 		.addConstructor <void(*) (int scaling, SDL::Surface *base)>()
+		.endClass()
+
+		
+		.deriveClass<SurfaceColorMapped, SDL::Surface>("colormapped")
+		.addConstructor <void(*) (SDL::Surface *parent, LuaRef r)>()
 		.endClass()
 
 		.deriveClass<SDL::SurfaceScreenshot, SDL::Surface>("screenshot")

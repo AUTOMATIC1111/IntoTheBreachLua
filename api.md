@@ -13,7 +13,7 @@ local resourceDat = sdl.resourceDat("resources/resource.dat")
 resourceDat:reload() -- this causes file index to be reloaded, and has to be called every time you edit the .dat file
 ```
 
-### sdl.blob
+#### sdl.blob
 Respresents a blob of data stored in memory.
 ```
 local blob = sdl.blobFromFile("test.png") -- reads file test.png in game directory

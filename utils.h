@@ -11,6 +11,9 @@
 int log(char *fmt, ...);
 int error(char *fmt, ...);
 
+/// Displays message box with error and halts the game
+void panic(const std::string & message);
+
 std::string format(const char *fmt, ...);
 std::string formatv(const char *fmt, va_list ap);
 

@@ -29,7 +29,7 @@ std::vector< EventHook * > hookListEvents;
 std::map< GLuint, unsigned long long > texturesMap;
 std::map< unsigned long long, int > lastFrameMap;
 
-GLuint glTexture(SDL_Surface *_surface) {
+GLuint glTexture(unsigned char *pixelData, int w, int h) {
 	GLuint texture = 0;
 
 	GLenum texture_format, internal_format, tex_type;
@@ -37,19 +37,20 @@ GLuint glTexture(SDL_Surface *_surface) {
 	tex_type = GL_UNSIGNED_INT_8_8_8_8_REV;
 	internal_format = GL_RGBA8;
 
+	int pitch = w * 4;
 	int alignment = 8;
-	while(_surface->pitch%alignment) alignment >>= 1; // x%1==0 for any x
+	while(pitch%alignment) alignment >>= 1; // x%1==0 for any x
 	glPixelStorei(GL_UNPACK_ALIGNMENT, alignment);
 
-	int expected_pitch = (_surface->w*_surface->format->BytesPerPixel + alignment - 1) / alignment*alignment;
-	if(_surface->pitch - expected_pitch >= alignment) // Alignment alone wont't solve it now
-		glPixelStorei(GL_UNPACK_ROW_LENGTH, _surface->pitch / _surface->format->BytesPerPixel);
+	int expected_pitch = (w*4 + alignment - 1) / alignment*alignment;
+	if(pitch - expected_pitch >= alignment) // Alignment alone wont't solve it now
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, pitch / 4);
 	else glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, internal_format, _surface->w, _surface->h, 0, texture_format, tex_type, _surface->pixels);
+	glTexImage2D(GL_TEXTURE_2D, 0, internal_format, w, h, 0, texture_format, tex_type, pixelData);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -133,16 +134,15 @@ void FileFont::init(double size) {
 
 void Surface::init() {
 	pixelData = NULL;
-	surface = NULL;
 	textureId = 0;
 	hash = 0;
+	width = 0;
+	height = 0;
 }
 
 Surface::~Surface() {
 	if(pixelData != NULL)
 		delete[] pixelData;
-	if(surface != NULL)
-		SDL_FreeSurface(surface);
 	if(textureId != 0)
 		glDeleteTextures(1, &textureId);
 }
@@ -202,35 +202,11 @@ void Surface::setBitmap(void *data, int sx, int sy, int w, int h, int stride) {
 	createSurfaceFromPixelData(w, h);
 }
 
-void Surface::setBitmapWithoutReshuffle(void *data, int sx, int sy, int w, int h, int stride) {
-	unsigned char *pixels = (unsigned char *) data;
-
-	pixelData = new unsigned char[w * h * 4];
-	int initial = 0;
-	if(stride < 0) {
-		initial = (sy + h - 1) * -stride;
-	}
-
-	for(int y = 0; y < h; y++) {
-		memcpy(&pixelData[y*w * 4], &pixels[initial + sx * 4 + (sy + y) * stride],w*4);
-	}
-
-	createSurfaceFromPixelData(w, h);
-}
-
 void Surface::createSurfaceFromPixelData(int w, int h){
 	hash = XXH64(pixelData, w * h * 4, 0);
 
-	Uint32 rmask = 0x000000ff;
-	Uint32 gmask = 0x0000ff00;
-	Uint32 bmask = 0x00ff0000;
-	Uint32 amask = 0xff000000;
-	surface = SDL_CreateRGBSurfaceFrom((void*) pixelData, w, h, 32, 4 * w, rmask, gmask, bmask, amask);
-
-	if(surface == NULL) {
-		::log("Creating surface from bitmap failed: %s", SDL_GetError());
-		exit(1);
-	}
+	width = w;
+	height = h;
 }
 
 void Surface::setBitmap(Gdiplus::Bitmap *bitmap) {
@@ -262,26 +238,6 @@ Surface::Surface(const std::string &filename) {
 	delete bitmap;
 }
 
-/*
-#include "Shlwapi.h"
-#pragma comment(lib,"Shlwapi.lib")
-
-Surface::Surface(const Blob *blob) {
-	init();
-
-	IStream* stream = SHCreateMemStream(blob->data, blob->length);
-	Gdiplus::Bitmap *bitmap = Gdiplus::Bitmap::FromStream(stream, false);
-	if(bitmap == NULL) {
-		::log("couldn't open picture from blob\n", blob->source.c_str());
-		exit(1);
-	}
-
-	setBitmap(bitmap);
-
-	delete bitmap;
-	stream->Release();
-}
-*/
 Surface::Surface(Blob *blob) {
 	init();
 
@@ -343,16 +299,15 @@ Surface::Surface(const Font * font, const TextSettings *settings, const std::str
 void Surface::addOutline(int levels, const Color *color) {
 	if(levels == 0) return;
 
-	int colorValue = (0xff << 24) | (color->r << 16) | (color->g << 8) | (color->b);
+	int colorValue = (0xff << 24) | (color->b << 16) | (color->g << 8) | (color->r);
 
-	int w = surface->w;
-	int h = surface->h;
+	int w = width;
+	int h = height;
 
 	unsigned char *data = new unsigned char[w * h * 4];
 	unsigned char *data2 = new unsigned char[w * h * 4];
 
-	SDL_LockSurface(surface);
-	memcpy(data, surface->pixels, 4 * w * h);
+	memcpy(data, pixelData, 4 * w * h);
 
 	for(int i = 0; i < levels; i++) {
 		memcpy(data2, data, 4 * w * h);
@@ -386,34 +341,45 @@ void Surface::addOutline(int levels, const Color *color) {
 		data2 = tmp;
 	}
 
-	memcpy(surface->pixels, data, 4 * w * h);
-	SDL_UnlockSurface(surface);
+	memcpy(pixelData, data, 4 * w * h);
 
 	delete[] data;
 	delete[] data2;
 }
 
+bool Surface::isValid() {
+	if(this == NULL) return false;
+	if(pixelData == NULL) return false;
+
+	return true;
+}
+
+
 Surface::Surface(Surface *parent, int levels, Color *color) {
 	init();
+
+	if(!parent->isValid()) return;
 
 	int w = parent->w();
 	int h = parent->h();
 
 	unsigned char *data = new unsigned char[w * h * 4];
 
-	SDL_LockSurface(parent->surface);
-	memcpy(data, parent->surface->pixels, 4 * w * h);
-	SDL_UnlockSurface(parent->surface);
+	memcpy(data, parent->pixelData, 4 * w * h);
 
-	setBitmap(data, 0, 0, w, h, w * 4);
+	pixelData = (unsigned char *) data;
 
-	delete[] data;
+	width = w;
+	height = h;
 
 	addOutline(levels, color);
+
+	createSurfaceFromPixelData(w, h);
 }
 
 Surface::Surface(int scaling, Surface *parent) {
 	init();
+	if(! parent->isValid()) return;
 
 	int w = parent->w();
 	int h = parent->h();
@@ -422,8 +388,6 @@ Surface::Surface(int scaling, Surface *parent) {
 	int newh = h * scaling;
 
 	Uint32 *data = new Uint32[neww * newh];
-
-	SDL_LockSurface(parent->surface);
 	Uint32 *pixels = (Uint32 *) parent->pixelData;
 
 	for(int x = 0; x < w; x++) {
@@ -437,15 +401,13 @@ Surface::Surface(int scaling, Surface *parent) {
 		}
 	}
 
-	SDL_UnlockSurface(parent->surface);
-
-	setBitmap(data, 0, 0, neww, newh, neww * 4);
-
-	delete[] data;
+	pixelData = (unsigned char *) data;
+	createSurfaceFromPixelData(neww, newh);
 }
 
 Surface::Surface(Surface *parent, std::vector<Color *> colormap) {
 	init();
+	if(!parent->isValid()) return;
 
 	std::map<Uint32, Uint32> map;
 	for(unsigned int i = 0; i + 1 < colormap.size(); i += 2) {
@@ -462,8 +424,6 @@ Surface::Surface(Surface *parent, std::vector<Color *> colormap) {
 	int h = parent->h();
 
 	Uint32 *data = new Uint32[w * h];
-
-	SDL_LockSurface(parent->surface);
 	Uint32 *pixels = (Uint32 *) parent->pixelData;
 
 	for(int x = 0; x < w; x++) {
@@ -481,11 +441,8 @@ Surface::Surface(Surface *parent, std::vector<Color *> colormap) {
 		}
 	}
 
-	SDL_UnlockSurface(parent->surface);
-
-	setBitmapWithoutReshuffle(data, 0, 0, w, h, w * 4);
-
-	delete[] data;
+	pixelData = (unsigned char *) data;
+	createSurfaceFromPixelData(w, h);
 }
 
 Surface::Surface() {
@@ -550,7 +507,7 @@ void Screen::finish() {
 }
 
 void Screen::blitRect(Surface *src, Rect *srcRect, Rect *destRect) {
-	if(src == NULL) return;
+	if(!src->isValid()) return;
 
 	int x1 = destRect->x;
 	int y1 = destRect->y;
@@ -570,8 +527,8 @@ void Screen::blitRect(Surface *src, Rect *srcRect, Rect *destRect) {
 }
 
 void Screen::blit(Surface *src, Rect *srcRect, int destx, int desty) {
-	if(src == NULL) return;
-	
+	if(!src->isValid()) return;
+
 	Rect destRect = { destx, desty, src->w(), src->h() };
 
 	blitRect(src, srcRect, &destRect);
