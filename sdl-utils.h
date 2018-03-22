@@ -68,6 +68,7 @@ struct Surface {
 	GLuint textureId;
 	unsigned long long hash;
 	int width, height;
+	double x, y;
 
 	void setBitmap(Gdiplus::Bitmap *bitmap);
 	void setBitmap(HBITMAP hbitmap, int x, int y, int w, int h);
@@ -199,10 +200,12 @@ double mtime(const std::string filename);
 
 void log(const std::string & line);
 
+struct Coord { GLdouble x; GLdouble y; Coord() { x = y = 0;  } };
+
 extern std::vector< DrawHook * > hookListDraw;
 extern std::vector< EventHook * > hookListEvents;
 extern std::map< GLuint, unsigned long long > texturesMap;
-extern std::map< unsigned long long, int > lastFrameMap;
+extern std::map< unsigned long long, Coord > lastFrameMap;
 
 }
 

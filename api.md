@@ -55,12 +55,18 @@ local scaled = sdl.scaled(2, surf)
 -- create a new surface by rendering text
 local textsurf = sdl.text(font,textset,"hello!")
 
--- createw a new surface by taking a screenshot of the game window
+-- create a new surface by taking a screenshot of the game window
 local screenshot = sdl.screenshot()
 
 if surf:wasDrawn() then
     -- wasDrawn() returns true if the image in surface was used by the game to draw
     -- previous frame. This can be useful to find out game state.
+	
+	-- after you call wasDrawn(), you can access x and y fields of the surface. 
+	-- they refer to position on screen, in pixels, where exactly the surface was drawn.
+	-- top left screen corner is (0,0), bottom right is (screen:w(),screen:h())
+	LOG(surf.x)
+	LOG(surf.y)
 end
 ```
 

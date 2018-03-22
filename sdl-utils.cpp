@@ -27,7 +27,7 @@ namespace SDL {
 std::vector< DrawHook * > hookListDraw;
 std::vector< EventHook * > hookListEvents;
 std::map< GLuint, unsigned long long > texturesMap;
-std::map< unsigned long long, int > lastFrameMap;
+std::map< unsigned long long, Coord > lastFrameMap;
 
 GLuint glTexture(unsigned char *pixelData, int w, int h) {
 	GLuint texture = 0;
@@ -450,7 +450,21 @@ Surface::Surface() {
 }
 
 bool Surface::wasDrawn() {
-	return lastFrameMap.find(hash) != lastFrameMap.end();
+	auto iter = lastFrameMap.find(hash);
+
+	if(iter == lastFrameMap.end())
+		return false;
+
+/*	GLint mat[4];
+	glGetIntegerv(GL_VIEWPORT, mat);
+
+	x = iter->second.x * mat[2];
+	y = iter->second.y * mat[3];*/
+
+	x = iter->second.x;
+	y = iter->second.y;
+
+	return true;
 }
 
 SurfaceScreenshot::SurfaceScreenshot() {
@@ -477,6 +491,7 @@ void Screen::begin() {
 	int w, h;
 	SDL_GL_GetDrawableSize(window, &w, &h);
 
+	glViewport(0, 0, w, h);
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
