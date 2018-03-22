@@ -1,3 +1,5 @@
+require('scripts/sdlext/serizalize')
+
 local resourceDat = sdl.resourceDat("resources/resource.dat")
 local resourceDatMtime = sdl.mtime("resources/resource.dat")
 local function checkResource()
@@ -30,4 +32,33 @@ function sdlext.surface(path)
 	end
 	
 	return sdl.surfaceFromBlob(blob)
+end
+
+function sdlext.squadPalettes()
+	local GetColorMapOld = GetColorMap
+	local GL_ColorOld = GL_Color
+	function GL_Color(r,g,b)
+		return sdl.rgb(r,g,b)
+	end
+	
+	require("scripts/color_map")
+	local res = {}
+	
+	for i=1,GetColorCount() do
+		res[i]=GetColorMap(i)
+	end
+	
+	GetColorMap = GetColorMapOld
+	GL_Color = GL_ColorOld
+
+	return res
+end
+
+function sdlext.config(filename,func)
+	local obj = persistence.load(filename)
+	obj = obj or {}
+	
+	func(obj)
+	
+	persistence.store(filename, obj)
 end

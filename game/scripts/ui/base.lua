@@ -25,12 +25,14 @@ function Ui:new()
 	self.hovered = false
 	self.disabled = false
 	self.root = self
+	self.parent = nil
 
 end
 
 function Ui:add(child)
 	child:setroot(self.root)
 	table.insert(self.children,child)
+	child.parent = self
 	
 	if self.nofitx == nil then
 		if self.w > 0 and child.w + child.x > self.w - self.padl - self.padr then
@@ -48,7 +50,7 @@ function Ui:add(child)
 end
 
 function Ui:addTo(parent)
-	if parent == nul then return self end
+	if parent == nil then return self end
 	
 	parent:add(self)
 	
@@ -78,8 +80,8 @@ function Ui:decorate(decorations)
 end
 
 function Ui:pos(x, y)
-	self.x = -x
-	self.y = -y
+	self.xPercent = x
+	self.yPercent = y
 	
 	return self
 end
@@ -107,12 +109,12 @@ function Ui:padding(v)
 end
 
 function Ui:width(w)
-	self.w = -w
+	self.wPercent = w
 	return self
 end
 
 function Ui:height(h)
-	self.h = -h
+	self.hPercent = h
 	return self
 end
 
@@ -171,7 +173,7 @@ function Ui:mouseup(mx, my)
 	for i=1,#self.children do
 		local child = self.children[i]
 		
-		if mx>=child.screenx and mx<child.screenx+child.w and my>=child.screeny and my<child.screeny+child.h then
+		if child ~= self.root.pressedchild and mx>=child.screenx and mx<child.screenx+child.w and my>=child.screeny and my<child.screeny+child.h then
 			if child:mouseup(mx, my) then
 				return true
 			end
@@ -191,12 +193,12 @@ function Ui:mousemove(mx, my)
 
 	for i=1,#self.children do
 		local child = self.children[i]
-		
 		if
 			mx>=child.screenx and
 			mx<child.screenx+child.w and
 			my>=child.screeny and
-			my<child.screeny+child.h
+			my<child.screeny+child.h and
+			child ~= self.root.pressedchild
 		then
 			self.root.hoveredchild = child
 			if child:mousemove(mx, my) then
@@ -205,7 +207,7 @@ function Ui:mousemove(mx, my)
 		end
 	end
 
-	return false
+	return true
 end
 
 function Ui:relayout()
@@ -214,10 +216,22 @@ function Ui:relayout()
 	for i=1,#self.children do
 		local child = self.children[i]
 		
-		if child.w < 0 then child.w = (self.w - self.padl - self.padr) * -child.w end
-		if child.h < 0 then child.h = (self.h - self.padt - self.padb) * -child.h end
-		if child.x < 0 then child.x = (self.w - self.padl - self.padr) * -child.x end
-		if child.y < 0 then child.y = (self.h - self.padt - self.padb) * -child.y end
+		if child.wPercent ~= nil then
+			child.w = (self.w - self.padl - self.padr) * child.wPercent
+			child.wPercent = nil
+		end
+		if child.hPercent ~= nil then
+			child.h = (self.h - self.padt - self.padb) * child.hPercent
+			child.hPercent = nil
+		end
+		if child.xPercent ~= nil then
+			child.x = (self.w - self.padl - self.padr) * child.xPercent
+			child.xPercent = nil
+		end
+		if child.yPercent ~= nil then
+			child.y = (self.h - self.padt - self.padb) * child.yPercent
+			child.yPercent = nil
+		end
 		
 		child.screenx = self.screenx + self.padl - self.dx + child.x
 		child.screeny = self.screeny + self.padt - self.dy + child.y
@@ -244,7 +258,7 @@ function Ui:draw(screen)
 		decoration:draw(screen, self)
 	end
 
-	for i=1,#self.children do
+	for i=#self.children,1,-1 do
 		local child = self.children[i]
 		child:draw(screen)
 	end
@@ -256,4 +270,17 @@ function Ui:clicked()
 	end
 end
 
+function Ui:bringToTop()
+	if self.parent == nil then return self end
+	local list = self.parent.children
+	
+	for k,v in pairs(list) do
+		if self == v then
+			table.remove(list, k)
+			break
+		end
+	end
+	
+	table.insert(list, 1, self)
+end
 

@@ -114,14 +114,13 @@ function GetScripts() return {
 		
 	"user/missionData.lua",
 	
-	"scripts/sdlext/sdlext.lua",
-	
 	"scripts/mod_loader/modapi.lua",
 	"scripts/mod_loader/lua-struct.lua",
 	"scripts/kaitai_struct_lua_runtime-master/kaitaistruct.lua",
 	"scripts/mod_loader/altered.lua",
 	"scripts/mod_loader/mod_loader.lua",
 
+	"scripts/sdlext/sdlext.lua",
 	"scripts/ui/ui.lua",
 }
 end

@@ -78,6 +78,7 @@ function UiScrollArea:wheel(mx,my,y)
 	self.dy = self.dy - y * 20
 	if self.dy < 0 then self.dy = 0 end
 	if self.dy + self.h > self.innerHeight then self.dy = self.innerHeight - self.h end
+	if self.h > self.innerHeight then self.dy=0 end
 
 	return true
 end

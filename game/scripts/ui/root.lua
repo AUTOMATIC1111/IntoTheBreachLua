@@ -27,6 +27,15 @@ function UiRoot:event(eventloop)
 	end
 	
 	if type == sdl.events.mousebuttonup then
+		local child = self.pressedchild
+		if child ~= nil and mx>=child.screenx and mx<child.screenx+child.w and my>=child.screeny and my<child.screeny+child.h then
+			if child:mouseup(mx, my) then
+				self.pressedchild = nil
+				child.pressed = false
+				return true
+			end
+		end
+		
 		local res = self:mouseup(mx, my)
 		self.pressedchild = nil
 		return res
@@ -37,6 +46,12 @@ function UiRoot:event(eventloop)
 			self.hoveredchild.hovered = false
 		end
 		self.hoveredchild = nil
+
+		if self.pressedchild ~= nil then
+			if self.pressedchild:mousemove(mx, my) then
+				return true
+			end
+		end
 		
 		return self:mousemove(mx, my)
 	end
