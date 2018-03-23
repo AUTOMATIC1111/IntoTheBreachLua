@@ -1,5 +1,6 @@
 #include "lua-functions.h"
 #include "utils.h"
+#include "os.h"
 #include <windows.h>
 #include "sdl-utils.h"
 #include "LuaBridge/LuaBridge.h"
@@ -11,12 +12,7 @@ using namespace luabridge;
 #include <vector>
 #include <algorithm>
 
-int SdlTest(lua_State *L) {
-
-	return 0;
-}
-
-int ListDirectoryFull(lua_State *L, int mode) {
+int listDirectoryFull(lua_State *L, int mode) {
 	const char *dirname = lua_tostring(L, 1);
 
 	lua_newtable(L);
@@ -49,19 +45,19 @@ int ListDirectoryFull(lua_State *L, int mode) {
 	return 1;
 }
 
-int ListDirectory(lua_State *L) {
-	return ListDirectoryFull(L, -1);
+int listDirectory(lua_State *L) {
+	return listDirectoryFull(L, -1);
 }
 
-int ListDirectoryFiles(lua_State *L) {
-	return ListDirectoryFull(L, 0);
+int listDirectoryFiles(lua_State *L) {
+	return listDirectoryFull(L, 0);
 }
 
-int ListDirectoryDirs(lua_State *L) {
-	return ListDirectoryFull(L, 1);
+int listDirectoryDirs(lua_State *L) {
+	return listDirectoryFull(L, 1);
 }
 
-int Messagebox(lua_State *L) {
+int messagebox(lua_State *L) {
 	const char *text = lua_tostring(L, 1);
 
 	MessageBoxA(NULL, text, "Message", 0);
@@ -285,13 +281,24 @@ void installFunctions(lua_State *L) {
 		.addFunction("y", SDL::mousey)
 		.endNamespace()
 
-		.addFunction("log", SDL::log)
+		.endNamespace();
 
-		.addFunction("isshiftdown", SDL::isshiftdown)
-		
-		.addFunction("mtime", SDL::mtime)
+	getGlobalNamespace(L)
+		.beginNamespace("os")
+
+		.addFunction("log", OS::log)
+		.addFunction("isshiftdown", OS::isshiftdown)
+		.addFunction("mtime", OS::mtime)
+		.addFunction("getKnownFolder", OS::getKnownFolder)
+		.addFunction("mkdir", OS::mkdir)
+
+		.addCFunction("messagebox", &messagebox)
+		.addCFunction("listall", &listDirectory)
+		.addCFunction("listfiles", &listDirectoryFiles)
+		.addCFunction("listdirs", &listDirectoryDirs)
 
 		.endNamespace();
+
 }
 
 void installAutoexec(lua_State *L) {

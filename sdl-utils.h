@@ -194,12 +194,6 @@ struct Timer {
 int mousex();
 int mousey();
 
-bool isshiftdown();
-
-double mtime(const std::string filename);
-
-void log(const std::string & line);
-
 struct Coord { GLdouble x; GLdouble y; Coord() { x = y = 0;  } };
 
 extern std::vector< DrawHook * > hookListDraw;
