@@ -46,15 +46,26 @@ SDL_Window *globalWindow;
 
 GLuint texture;
 void render() {
+	int w, h;
+	SDL_GL_GetDrawableSize(globalWindow, &w, &h);
+
+	GLfloat mat[16];
+
 	float r = (float) rand() / (float) RAND_MAX;
 	glClearColor(sinf(0.0015f * SDL_GetTicks()) / 2 + 0.5f, 0.5f, 0.5f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
+	glViewport(0, 0, w, h);
 	glMatrixMode(GL_PROJECTION);
+	glGetFloatv(GL_MODELVIEW_MATRIX, mat);
 	glPushMatrix();
+	glGetFloatv(GL_MODELVIEW_MATRIX, mat);
 	glLoadIdentity();
-	glOrtho(0.0, 1280, 720, 0.0, -1.0, 1.0);
+	glGetFloatv(GL_MODELVIEW_MATRIX, mat);
+	glOrtho(0.0, w, h, 0.0, -1.0, 1.0);
+	glGetFloatv(GL_MODELVIEW_MATRIX, mat);
 	glMatrixMode(GL_MODELVIEW);
+	glGetFloatv(GL_MODELVIEW_MATRIX, mat);
 	glPushMatrix();
 
 	glLoadIdentity();
@@ -67,17 +78,22 @@ void render() {
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texture);
 
+	glGetFloatv(GL_MODELVIEW_MATRIX, mat);
 	glBegin(GL_QUADS);
-	glTexCoord2f(0, 0); glVertex3f(400, 200, 0);
-	glTexCoord2f(0, 1); glVertex3f(400, 300, 0);
-	glTexCoord2f(1, 1); glVertex3f(500, 300, 0);
-	glTexCoord2f(1, 0); glVertex3f(500, 200, 0);
+	glGetFloatv(GL_MODELVIEW_MATRIX, mat);
+	glTexCoord2f(0, 0); glVertex2f(100, 100);
+	glGetFloatv(GL_MODELVIEW_MATRIX, mat);
+	glTexCoord2f(0, 1); glVertex2f(100, 200);
+	glGetFloatv(GL_MODELVIEW_MATRIX, mat);
+	glTexCoord2f(1, 1); glVertex2f(200, 200);
+	glGetFloatv(GL_MODELVIEW_MATRIX, mat);
+	glTexCoord2f(1, 0); glVertex2f(200, 100);
+	glGetFloatv(GL_MODELVIEW_MATRIX, mat);
 	glEnd();
 
 
 	glDisable(GL_TEXTURE_2D);
 	glPopMatrix();
-
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
@@ -95,7 +111,7 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	globalWindow = SDL_CreateWindow("title", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1280, 720, SDL_WINDOW_OPENGL);
+	globalWindow = SDL_CreateWindow("title", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1280, 720, SDL_WINDOW_OPENGL| SDL_WINDOW_RESIZABLE);
 	SDL_GLContext gl_context = SDL_GL_CreateContext(globalWindow);
 
 	SDL::Surface surface("test-tr.png");

@@ -12,6 +12,7 @@
     <ClCompile Include="sdl2.cc" />
     <ClCompile Include="xxhash.c" />
     <ClCompile Include="blob.cc" />
+    <ClCompile Include="os.cc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lua-functions.h" />
@@ -77,6 +78,7 @@
     <ClInclude Include="sdl2.h" />
     <ClInclude Include="xxhash.h" />
     <ClInclude Include="blob.h" />
+    <ClInclude Include="os.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="exports.def" />

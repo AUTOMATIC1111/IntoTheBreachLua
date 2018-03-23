@@ -193,12 +193,6 @@ struct Timer {
 int mousex();
 int mousey();
 
-bool isshiftdown();
-
-double mtime(const std::string filename);
-
-void log(const std::string & line);
-
 extern std::vector< DrawHook * > hookListDraw;
 extern std::vector< EventHook * > hookListEvents;
 extern std::map< GLuint, unsigned long long > texturesMap;

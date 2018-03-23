@@ -10,21 +10,6 @@ HOOK_LUA(luaL_newstate, lua_State *, ()) {
 	
 	installFunctions(l);
 
-	lua_pushcfunction(l, Messagebox);
-	lua_setglobal(l, "messagebox");
-
-	lua_pushcfunction(l, ListDirectory);
-	lua_setglobal(l, "listall");
-
-	lua_pushcfunction(l, ListDirectoryFiles);
-	lua_setglobal(l, "listfiles");
-
-	lua_pushcfunction(l, ListDirectoryDirs);
-	lua_setglobal(l, "listdirs");
-
-	lua_pushcfunction(l, SdlTest);
-	lua_setglobal(l, "sdltest");
-	
 	return l;
 }
 
