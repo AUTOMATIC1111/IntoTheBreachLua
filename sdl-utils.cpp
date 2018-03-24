@@ -149,8 +149,6 @@ void FileFont::init(double size) {
 	defaults();
 }
 
-static Gdiplus::FontFamily family;
-
 void Font::setFont(Gdiplus::Font *f) {
 	font = f;
 
