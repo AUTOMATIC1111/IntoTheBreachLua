@@ -209,7 +209,7 @@ function modApi:addSquadTrue(squad,name,desc,icon)
 	table.insert(self.mod_squads,squad)
 	table.insert(self.squad_text,name)
 	table.insert(self.squad_text,desc)
-	table.insert(self.squad_icon,icon)
+	table.insert(self.squad_icon,icon or "resources/mods/squads/unknown.png")
 end
 
 function modApi:addSquad(id,squad,desc,icon)

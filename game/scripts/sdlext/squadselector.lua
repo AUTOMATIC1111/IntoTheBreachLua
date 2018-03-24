@@ -71,7 +71,7 @@ function modApi.selectSquads()
 			labelcount:caption(count.."/"..maxselected)
 		end
 		
-		for i=1,#modApi.squad_icon do
+		for i=1,#modApi.mod_squads do
 			local col = (i-1) % 2
 			local row = math.floor((i-1) / 2)
 			
