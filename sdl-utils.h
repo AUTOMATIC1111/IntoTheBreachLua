@@ -42,15 +42,22 @@ struct TextSettings {
 };
 
 struct Font {
-	std::unique_ptr<Gdiplus::Font> font;
+	Gdiplus::Font *font;
+	Gdiplus::FontFamily *family;
+
+	void setFont(Gdiplus::Font *f);
+
+	float ascent;
+	float descent;
 
 	Font();
+	~Font();
 	Font(const std::string &name, double size);
 
 	void defaults();
 
 	operator const Gdiplus::Font *() const {
-		return font.get();
+		return font;
 	}
 };
 
@@ -189,6 +196,7 @@ struct Timer {
 	int startTime;
 
 	int elapsed();
+	void reset();
 };
 
 int mousex();

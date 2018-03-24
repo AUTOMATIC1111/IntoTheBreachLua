@@ -20,24 +20,12 @@ function mod_loader:init()
 	
 	--Ideally we want to load only after opening a save so that we can handle mod configurations but without a way to modify the UI that's probably impossible :(
 	self:loadModContent(self:getModContentDefaults(),savedOrder)
-	
-	-- add a hook for drawing cursor over mods' custom ui
-	if sdl then
-		local cursor=sdl.surface("resources/mods/ui/pointer-noshadow.png")
-		
-		C_HOOK_Draw_Cursor = sdl.drawHook(function(screen)
-			screen:blit(cursor,nil,sdl.mouse.x(),sdl.mouse.y())
-		end)
-	end
 end
 
 function mod_loader:enumerateMods()
 
-	if listdirs then
-		local modlist = listdirs("mods")
-		for key,value in pairs(modlist) do
-			table.insert(self.mod_dirs,value)
-		end
+	if os and os.listdirs then
+		self.mod_dirs = os.listdirs("mods")
 	else
 		for dir in io.popen([[dir ".\mods\" /b /ad]]):lines() do table.insert(self.mod_dirs,dir) end
 	end
@@ -214,152 +202,6 @@ function mod_loader:loadModContent(mod_options,savedOrder)
 		else
 			mod.installed = false
 			LOG(err)
-		end
-	end
-end
-
-local squadPalettes = sdlext.squadPalettes()
-function modApi:selectSquads()
-	local maxselected = 8
-
-	local smallfont = sdlext.font("fonts/JustinFont8.ttf",13);
-	local screen = sdl.screen()
-	local eventloop = sdl.eventloop()
-	local w = screen:w()
-	local h = screen:h()
-	local quit = 0
-	local pointer = sdl.scaled(2,sdlext.surface("img/mouse/pointer.png"));
-	local mouserect = sdl.rect(sdl.mouse.x(), sdl.mouse.y(), pointer:w(), pointer:h())
-	local screenshot = sdl.screenshot()
-	local bg = sdl.rgba(0,0,0,128)
-
-	local ui = UiRoot():widthpx(w):heightpx(h)
-	
-	-- bottom frame
-	local framebot = Ui():width(0.4):heightpx(56):pos(0.4,0.7):padding(4):decorate({DecoFrame()})
-	ui:add(framebot)
-
-	local labelcount = Ui():pos(0,0):width(0.1):height(0.6):caption(""):decorate({DecoCaption()})
-	framebot:add(labelcount)
-	
-	framebot:add(Ui():pos(0,0.6):width(0.2):height(0.4):caption("Total selected"):decorate({DecoCaption(smallfont)}))
-
-	local buttongo = Ui():pos(0.2,0):width(0.8):height(1):caption("Continue"):decorate({DecoButton(),DecoCaption()})
-	framebot:add(buttongo)
-	buttongo.onclicked = function()
-		quit = 1
-	end
-	
-	-- top frame
-	local frametop = Ui():width(0.6):height(0.575):pos(0.2,0.1):caption("Choose squads"):decorate({DecoFrame(), DecoFrameCaption()})
-	ui:add(frametop)
-
-	local scrollarea = UiScrollArea():width(1):height(1):padding(24):decorate({DecoSolid(sdl.rgb(24,28,40))})
-	frametop:add(scrollarea)
-	
-	local checkboxes = {}
-	local updatecount = function()
-		local count = 0
-		
-		for i=1,#checkboxes do
-			local checkbox = checkboxes[i]
-			if checkbox.checked then count=count+1 end
-		end
-		
-		labelcount:caption(count.."/"..maxselected);
-		buttongo.disabled = count > maxselected
-	end
-	
-	for i=1,#modApi.squad_icon do
-		local col = (i-1) % 2
-		local row = math.floor((i-1) / 2)
-		
-		local surface = sdlext.surface(self.squad_icon[i])
-		
-		if i>1 and i<=8 then
-			local colorTable = {}
-			for j=1,#squadPalettes[1] do
-				colorTable[(j-1)*2 + 1] = squadPalettes[1][j]
-				colorTable[(j-1)*2 + 2] = squadPalettes[i][j]
-			end
-			
-			surface = sdl.colormapped(surface, colorTable)
-		end
-		
-		local checkbox = UiCheckbox():pos(0.5*col,0.235*row):heightpx(41):width(0.48):decorate(
-			{ DecoButton(), DecoCheckbox(), DecoSurfaceOutlined(surface), DecoText(self.squad_text[(i-1)*2+1]) }
-		)
-		
-		if i <= maxselected then
-			checkbox.checked = true
-		end
-		
-		scrollarea:add( checkbox )
-		
-		checkbox.onclicked = function()
-			updatecount()
-		end
-		
-		table.insert(checkboxes, checkbox)
-	end
-	
-	for i=1,maxselected do
-		if self.squadIndices == nil then
-			checkboxes[i].checked = true
-		else
-			checkboxes[self.squadIndices[i]].checked = true
-		end
-	end
-	updatecount()
-	
-	while quit == 0 do
-		while eventloop:next() do
-			local type = eventloop:type();
-			
-			ui:event(eventloop)
-			
-			if type == sdl.events.quit then
-				quit = 1
-			elseif type == sdl.events.keydown and eventloop:keycode() == 27 then
-				quit = 1
-			elseif type == sdl.events.mousemotion then
-				mouserect.x = eventloop:x();
-				mouserect.y = eventloop:y();
-			end
-		end
-		
-		screen:begin()
-		screen:blit(screenshot, nil, 0, 0)
-		screen:drawrect(bg, nil)
-		ui:draw(screen)
-		screen:blit(pointer, nil, mouserect.x, mouserect.y)
-		screen:finish()
-	end
-	
-	self.squadIndices = {}
-	local assignIndex = function(n)
-		for i=1,maxselected do
-			if self.squadIndices[i] == nil then
-				self.squadIndices[i] = n
-				return true
-			end
-		end
-		return false
-	end
-
-	for i=1,maxselected do
-		if checkboxes[i].checked then
-			self.squadIndices[i] = i
-		end
-	end
-	
-	for i=maxselected+1,#checkboxes do
-		if checkboxes[i].checked and not assignIndex(i) then break end
-	end
-	
-	for i=1,maxselected do
-		if self.squadIndices[i] == nil then
-			self.squadIndices[i] = i
 		end
 	end
 end

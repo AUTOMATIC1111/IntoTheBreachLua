@@ -39,6 +39,8 @@ void panic(const std::string & message) {
 	error("%s\n", message.c_str());
 
 	MessageBoxW(NULL, s2ws(message).c_str(), L"Error", MB_OK);
+	
+	exit(1);
 }
 
 std::string format(const char *fmt, ...) {

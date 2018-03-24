@@ -31,7 +31,7 @@ HOOK_SDL(SDL_GL_SwapWindow, void, (SDL_Window * window)) {
 }
 
 HOOK_SDL(SDL_PollEvent, int, (SDL_Event *evt)) {
-	if(SDL::hookListEvents.empty()) {
+	if(SDL::hookListEvents.empty() || evt==NULL) {
 		return (*dll_SDL_PollEvent)(evt);
 	}
 

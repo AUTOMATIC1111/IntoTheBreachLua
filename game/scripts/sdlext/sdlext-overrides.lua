@@ -1,0 +1,2 @@
+
+require('scripts/sdlext/squadselector')

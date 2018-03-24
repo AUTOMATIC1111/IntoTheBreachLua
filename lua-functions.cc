@@ -264,6 +264,7 @@ void installFunctions(lua_State *L) {
 		.beginClass <SDL::Timer>("timer")
 		.addConstructor <void(*) ()>()
 		.addFunction("elapsed", &SDL::Timer::elapsed)
+		.addFunction("reset", &SDL::Timer::reset)
 		.endClass()
 
 		.beginNamespace("events")

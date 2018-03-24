@@ -16,16 +16,16 @@ local function textset(color,outlineColor,outlineWidth)
 	return res
 end
 
-local justin13 = sdlext.font("fonts/Justin13.ttf",13)
-local justin15 = sdlext.font("fonts/Justin15.ttf",18)
+local justin12 = sdlext.font("fonts/JustinFont12Bold.ttf",12)
+local menufont = sdlext.font("fonts/JustinFont11Bold.ttf",24)
 
 local uifont = {
 	default = {
-		font = justin13,
+		font = justin12,
 		set = textset(white),
 	},
 	title = {
-		font = justin15,
+		font = menufont,
 		set = textset(white,sdl.rgb(35,42,59),2),
 	},
 }

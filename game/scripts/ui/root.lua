@@ -5,6 +5,7 @@ function UiRoot:new()
 	
 	self.hoveredchild = nil
 	self.pressedchild = nil
+	self.translucent = true
 end
 
 function UiRoot:draw(screen)
@@ -14,6 +15,8 @@ function UiRoot:draw(screen)
 end
 
 function UiRoot:event(eventloop)
+	if not self.visible then return false end
+	
 	local type = eventloop:type();
 	local mx = sdl.mouse.x();
 	local my = sdl.mouse.y();
@@ -49,10 +52,12 @@ function UiRoot:event(eventloop)
 
 		if self.pressedchild ~= nil then
 			if self.pressedchild:mousemove(mx, my) then
-				return true
+				return false
 			end
 		end
 		
-		return self:mousemove(mx, my)
+		-- XXX
+		self:mousemove(mx, my)
+		return false
 	end
 end

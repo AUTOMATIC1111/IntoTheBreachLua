@@ -24,6 +24,7 @@ function Ui:new()
 	self.pressed = false
 	self.hovered = false
 	self.disabled = false
+	self.visible = true
 	self.root = self
 	self.parent = nil
 
@@ -79,6 +80,18 @@ function Ui:decorate(decorations)
 	return self
 end
 
+function Ui:show()
+	self.visible = true
+	
+	return self
+end
+
+function Ui:hide()
+	self.visible = false
+	
+	return self
+end
+
 function Ui:pos(x, y)
 	self.xPercent = x
 	self.yPercent = y
@@ -89,6 +102,20 @@ end
 function Ui:pospx(x, y)
 	self.x = x
 	self.y = y
+	
+	return self
+end
+
+function Ui:setxpx(x)
+	self.x = x
+	self.xPercent = nil
+	
+	return self
+end
+
+function Ui:setypx(y)
+	self.y = y
+	self.yPercent = nil
 	
 	return self
 end
@@ -143,6 +170,8 @@ function Ui:wheel(mx,my,y)
 end
 
 function Ui:mousedown(mx, my)
+	if not self.visible then return false end
+	
 	if self.root.pressedchild ~= nil then
 		self.root.pressedchild.pressed = false
 	end
@@ -165,6 +194,8 @@ function Ui:mousedown(mx, my)
 end
 
 function Ui:mouseup(mx, my)
+	if not self.visible then return false end
+	
 	if self.root.pressedchild == self and not self.disabled then
 		self:clicked()
 		return true
@@ -184,6 +215,8 @@ function Ui:mouseup(mx, my)
 end
 
 function Ui:mousemove(mx, my)
+	if not self.visible then return false end
+	
 	if self.root.hoveredchild ~= nil then
 		self.root.hoveredchild.hovered = false
 	end
@@ -206,7 +239,8 @@ function Ui:mousemove(mx, my)
 			end
 		end
 	end
-
+	
+	if self.translucent then return false end
 	return true
 end
 
@@ -251,6 +285,8 @@ function Ui:relayout()
 end
 
 function Ui:draw(screen)
+	if not self.visible then return end
+	
 	self.decorationx = 0
 	self.decorationy = 0
 	for i=1,#self.decorations do
