@@ -25,6 +25,7 @@ function Ui:new()
 	self.hovered = false
 	self.disabled = false
 	self.visible = true
+	self.containsMouse = false
 	self.root = self
 	self.parent = nil
 
@@ -233,10 +234,18 @@ function Ui:mousemove(mx, my)
 			my<child.screeny+child.h and
 			child ~= self.root.pressedchild
 		then
+			if not child.containsMouse then
+				child.containsMouse = true
+				child:mouseEntered()
+			end
+			
 			self.root.hoveredchild = child
 			if child:mousemove(mx, my) then
 				return true
 			end
+		elseif child.containsMouse then
+			child.containsMouse = false
+			child:mouseExited()
 		end
 	end
 	
@@ -303,6 +312,18 @@ end
 function Ui:clicked()
 	if self.onclicked ~= nil then
 		self:onclicked()
+	end
+end
+
+function Ui:mouseEntered()
+	if self.onMouseEnter ~= nil then
+		self:onMouseEnter()
+	end
+end
+
+function Ui:mouseExited()
+	if self.onMouseExit ~= nil then
+		self:onMouseExit()
 	end
 end
 
