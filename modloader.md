@@ -90,6 +90,7 @@ modApi:addSquad(
 
 ### modApi:addPreMissionEndHook
 `function modApi:addPreMissionEndHook(fn)`
+
 Registers the function to be called before mission ends. **This description needs to be confirmed/clarified.**
 
 | Argument | Description |
@@ -105,6 +106,7 @@ end)
 
 ### modApi:addMissionStartHook
 `function modApi:addMissionStartHook(fn)`
+
 Registers the function to be called when the mission starts.
 
 | Argument | Description |
@@ -113,6 +115,7 @@ Registers the function to be called when the mission starts.
 
 ### modApi:addNextTurnHook
 `function modApi:addNextTurnHook(fn)`
+
 Registers the function to be called when the turn starts. Both player and enemy have their own turns, so the function will be called twice after the user presses next turn button. Convenient built-in functions to call in the hook are `Game:GetTurnCount()`, which returns how many turns have passed,  and `Game:GetTeamTurn()`, which returns a value that can be compared to `TEAM_PLAYER` and `TEAM_ENEMY`
 
 | Argument | Description |
@@ -192,6 +195,7 @@ modApi:addWeapon_Texts(require(self.scriptPath.."text_weapons"))
 
 ### modApi:addPopEvent
 `function modApi:addPopEvent(event,msg)`
+
 Registers PopEvent, the text shown near cities when certain actions happen ("The mechs are here, we're saved!", "Get away from the windows!").
 
 | Argument | Description |
@@ -201,6 +205,7 @@ Registers PopEvent, the text shown near cities when certain actions happen ("The
 
 ### modApi:setPopEventOdds
 `function modApi:setPopEventOdds(event,odds)`
+
 Sets the probability of the PopEvent occuring.
 
 | Argument | Description |
@@ -210,6 +215,7 @@ Sets the probability of the PopEvent occuring.
 
 ### modApi:addOnPopEvent
 `function modApi:addOnPopEvent(fn)`
+
 Registers the function to be called when a PopEvent occurs. This function is called with 5 arguments, once for each text in the PopEvent.
 
 | Argument | Description |
@@ -237,6 +243,7 @@ end)
 
 ### modApi:appendAsset
 `function modApi:appendAsset(resource, filePath)`
+
 Adds an asset (image or font) to the game (by putting it into `resources/resource.dat` file). All calls to this function must be inside your mod's `init` function.
 
 | Argument | Description |
