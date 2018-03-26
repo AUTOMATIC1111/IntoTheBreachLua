@@ -25,7 +25,7 @@ Arguments for load function are:
 | --- | --- |
 | self | The mod object. |
 | options | Mod options. Presumably a table. Possiblty not fully implemented yet. |
-| version | Mod loader version. |
+| version | Mod version *(why is it here?)*. |
 
 The `self` object, passed as first argument to both functions, is the table you previously returned from `init.lua` with following useful fields added:
 
