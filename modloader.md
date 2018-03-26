@@ -1,6 +1,7 @@
 ### init.lua
 Each mod is defined by its init.lua file. This file must exist in `scripts/init.lua` path in your mod's root directory, or mod loader will be unable to load it.
 The file, when executed, must return a table with following fields:
+
 | Field | Description |
 | --- | --- |
 | id | Mod id. A string that is supposed to uniquely identify your mod, and shouldn't change as you release updates to it. |
@@ -13,11 +14,13 @@ The file, when executed, must return a table with following fields:
 Init function is called by mod loader first, follower by call to load function.
 
 Arguments for init function are:
+
 | Argument | Description |
 | --- | --- |
 | self | The mod object. |
 
 Arguments for load function are:
+
 | Argument | Description |
 | --- | --- |
 | self | The mod object. |
@@ -25,6 +28,7 @@ Arguments for load function are:
 | version | Mod loader version. |
 
 The `self` object, passed as first argument to both functions, is a table you previously returned from `init.lua` with following useful fields added:
+
 | Field | Description |
 | --- | --- |
 | resourcePath | Path to mod's root directory. |
@@ -56,6 +60,7 @@ return {
 `function modApi:addSquad(squad, name, desc, icon)`
 
 Adds a new squad to the game.
+
 | Argument | Description |
 | --- | --- |
 | squad | A table with 4 values - text identifier of the squad, followed by three mech text identifiers. Each mech mentioned must exist as a global variable, created similarly to game's mechs in `pawns.lua` file. |
@@ -77,6 +82,7 @@ modApi:addSquad(
 `function modApi:overwriteText(id, str)`
 
 **This description needs to be written.**
+
 | Argument | Description |
 | --- | --- |
 | id | Text identifier to be replaced. |
@@ -85,6 +91,7 @@ modApi:addSquad(
 ### modApi:addPreMissionEndHook
 `function modApi:addPreMissionEndHook(fn)`
 Registers the function to be called before mission ends. **This description needs to be confirmed/clarified.**
+
 | Argument | Description |
 | --- | --- |
 | fn | Function to be called when the event occurs. |
@@ -99,6 +106,7 @@ end)
 ### modApi:addMissionStartHook
 `function modApi:addMissionStartHook(fn)`
 Registers the function to be called when the mission starts.
+
 | Argument | Description |
 | --- | --- |
 | fn | Function to be called when the event occurs. |
@@ -106,6 +114,7 @@ Registers the function to be called when the mission starts.
 ### modApi:addNextTurnHook
 `function modApi:addNextTurnHook(fn)`
 Registers the function to be called when the turn starts. Both player and enemy have their own turns, so the function will be called twice after the user presses next turn button. Convenient built-in functions to call in the hook are `Game:GetTurnCount()`, which returns how many turns have passed,  and `Game:GetTeamTurn()`, which returns a value that can be compared to `TEAM_PLAYER` and `TEAM_ENEMY`
+
 | Argument | Description |
 | --- | --- |
 | fn | Function to be called when the event occurs. |
@@ -123,6 +132,7 @@ end)
 `function modApi:addMissionUpdateHook(fn)`
 
 **This description needs to be written.**
+
 | Argument | Description |
 | --- | --- |
 | fn | Function to be called when the event occurs. |
@@ -131,11 +141,13 @@ end)
 `function modApi:addWeapon_Texts(tbl)`
 
 Registers strings related to weapons with the game.
+
 | Argument | Description |
 | --- | --- |
 | tbl | Table with as many key-value string pairs as you need. |
 
 Weapons you create in mods are stored in global variables, and you use names of those variables to equip pawns. For every weapon, the game requires some strings to be defined, or can misbehave, or even crash. If a weapon is stored in vartable WeaponName, the game expects strings `WeaponName_Name` and `WeaponName_Description` to be registered. If a weapon has one upgrade, `WeaponName_Upgrade1` and `WeaponName_A_UpgradeDescription` must be registered, and with two upgrades, the game requires two more strings: `WeaponName_Upgrade2` and `WeaponName_B_UpgradeDescription`. The description for each string is in the table below.
+
 | String | Description |
 | --- | --- |
 | WeaponName_Name | Name of the weapon displayed to user. |
@@ -181,6 +193,7 @@ modApi:addWeapon_Texts(require(self.scriptPath.."text_weapons"))
 ### modApi:addPopEvent
 `function modApi:addPopEvent(event,msg)`
 Registers PopEvent, the text shown near cities when certain actions happen ("The mechs are here, we're saved!", "Get away from the windows!").
+
 | Argument | Description |
 | --- | --- |
 | event | Event id, text identifier specifying which exactly event is being extended. Possible values for event are: `"Opening"`, `"Closing"`, `"Closing_Dead"`, `"Closing_Perfect"`, `"Closing_Bad"`, `"Threatened"`, `"Killed"`, `"Shielded"`, `"Frozen"` |
@@ -189,6 +202,7 @@ Registers PopEvent, the text shown near cities when certain actions happen ("The
 ### modApi:setPopEventOdds
 `function modApi:setPopEventOdds(event,odds)`
 Sets the probability of the PopEvent occuring.
+
 | Argument | Description |
 | --- | --- |
 | event | Event id |
@@ -197,11 +211,13 @@ Sets the probability of the PopEvent occuring.
 ### modApi:addOnPopEvent
 `function modApi:addOnPopEvent(fn)`
 Registers the function to be called when a PopEvent occurs. This function is called with 5 arguments, once for each text in the PopEvent.
+
 | Argument | Description |
 | --- | --- |
 | fn | Function to be called when the event occurs. |
 
 Arguments to the function are:
+
 | Argument | Description |
 | --- | --- |
 | text | The text to be displayed to user. |
@@ -222,6 +238,7 @@ end)
 ### modApi:appendAsset
 `function modApi:appendAsset(resource, filePath)`
 Adds an asset (image or font) to the game (by putting it into `resources/resource.dat` file). All calls to this function must be inside your mod's `init` function.
+
 | Argument | Description |
 | --- | --- |
 | resource | Path inside resource.dat where your asset should be placed. Use forward slahes (`/`). |
