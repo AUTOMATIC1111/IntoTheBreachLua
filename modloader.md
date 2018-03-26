@@ -11,7 +11,7 @@ The file, when executed, must return a table with following fields:
 | init | The init function. |
 | load | The load function. |
 
-Init function is called by mod loader first, follower by call to load function.
+Init function is called by mod loader first, followed by the call to load function.
 
 Arguments for init function are:
 
@@ -27,7 +27,7 @@ Arguments for load function are:
 | options | Mod options. Presumably a table. Possiblty not fully implemented yet. |
 | version | Mod loader version. |
 
-The `self` object, passed as first argument to both functions, is a table you previously returned from `init.lua` with following useful fields added:
+The `self` object, passed as first argument to both functions, is the table you previously returned from `init.lua` with following useful fields added:
 
 | Field | Description |
 | --- | --- |
@@ -136,9 +136,11 @@ end)
 
 **This description needs to be written.**
 
-| Argument | Description |
-| --- | --- |
-| fn | Function to be called when the event occurs. |
+
+### modApi:addMissionEndHook
+`function modApi:addMissionEndHook(fn, i)`
+
+**This description needs to be written.**
 
 ### modApi:addWeapon_Texts
 `function modApi:addWeapon_Texts(tbl)`
