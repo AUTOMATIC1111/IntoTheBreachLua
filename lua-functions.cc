@@ -137,6 +137,10 @@ void installFunctions(lua_State *L) {
 		.beginNamespace("sdl")
 
 		.beginClass <SDL::Color>("color")
+		.addData("r", &SDL::Color::r)
+		.addData("g", &SDL::Color::g)
+		.addData("b", &SDL::Color::b)
+		.addData("a", &SDL::Color::a)
 		.endClass()
 
 		.deriveClass<SDL::Color, SDL::Color>("rgba")

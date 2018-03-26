@@ -19,7 +19,8 @@ HOOK_SDL(SDL_GL_SwapWindow, void, (SDL_Window * window)) {
 
 		screen.begin();
 
-		for(SDL::DrawHook *hook: SDL::hookListDraw) {
+		for(auto i = SDL::hookListDraw.rbegin(); i != SDL::hookListDraw.rend(); ++i) {
+			SDL::DrawHook *hook = *i;
 			hook->draw(screen);
 		}
 
