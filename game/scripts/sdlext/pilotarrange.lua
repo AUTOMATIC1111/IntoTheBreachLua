@@ -101,8 +101,7 @@ function showArrangePilotsUi()
 			end
 		end
 		
-		for i=1,#PilotList do
-			local pilotId = PilotList[i]
+		local function addPilotButton(i,pilotId)
 			local pilot = _G[pilotId]
 			local col = (i-1) % portraitsPerRow
 			local row = math.floor((i-1) / portraitsPerRow)
@@ -149,13 +148,23 @@ function showArrangePilotsUi()
 				
 				stopDrag()
 				rearrange()
-
+				
 				return Ui.mouseup(self,mx,my)
+			end
+		end
+		
+		local dupes = {}
+		for i=1,#PilotList do
+			local pilotId = PilotList[i]
+			if not dupes[pilotId] then 
+				dupes[pilotId] = 1
+				addPilotButton(#pilotButtons+1,pilotId)
 			end
 		end
 	end)
 	
-	for i=1,#PilotList do
+	PilotList = {}
+	for i=1,#pilotButtons do
 		PilotList[i] = pilotButtons[i].pilotId
 	end
 	
