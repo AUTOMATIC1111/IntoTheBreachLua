@@ -19,7 +19,8 @@ HOOK_SDL(SDL_GL_SwapWindow, void, (SDL_Window * window)) {
 
 		screen.begin();
 
-		for(SDL::DrawHook *hook: SDL::hookListDraw) {
+		for(auto i = SDL::hookListDraw.rbegin(); i != SDL::hookListDraw.rend(); ++i) {
+			SDL::DrawHook *hook = *i;
 			hook->draw(screen);
 		}
 
@@ -31,7 +32,7 @@ HOOK_SDL(SDL_GL_SwapWindow, void, (SDL_Window * window)) {
 }
 
 HOOK_SDL(SDL_PollEvent, int, (SDL_Event *evt)) {
-	if(SDL::hookListEvents.empty()) {
+	if(SDL::hookListEvents.empty() || evt==NULL) {
 		return (*dll_SDL_PollEvent)(evt);
 	}
 
@@ -68,18 +69,77 @@ HOOK_OPENGL(glBindTexture, void, (GLenum target, GLuint texture)) {
 	return (*dll_glBindTexture)(target, texture);
 }
 
-HOOK_OPENGL(glTexCoord2f, void, (GLfloat s, GLfloat t)) {
-	if(currentUsedTexture != currentBoundTexture) {
-		currentUsedTexture = currentUsedTexture;
+struct Tl {
+	GLdouble x;
+	GLdouble y;
+};
+std::vector<Tl> tlStack = { Tl {0, 0} };
+GLenum matrixMode;
 
-		auto iter = SDL::texturesMap.find(currentBoundTexture);
-		if(iter != SDL::texturesMap.end()) {
-			unsigned long long hash = iter->second;
-			SDL::lastFrameMap[hash] = 1;
+HOOK_OPENGL(glMatrixMode, void, (GLenum mode)) {
+	matrixMode = mode;
+	return (*dll_glMatrixMode)(mode);
+}
+
+HOOK_OPENGL(glPushMatrix, void, ()) {
+	if(matrixMode == GL_MODELVIEW) {
+		tlStack.push_back(tlStack.at(tlStack.size() - 1));
+	}
+
+	return (*dll_glPushMatrix)();
+}
+
+HOOK_OPENGL(glPopMatrix, void, ()) {
+	if(matrixMode == GL_MODELVIEW && tlStack.size()>1) {
+		tlStack.pop_back();
+	}
+
+	return (*dll_glPopMatrix)();
+}
+
+HOOK_OPENGL(glLoadIdentity, void, ()) {
+	if(matrixMode == GL_MODELVIEW) {
+		Tl &tl = tlStack.at(tlStack.size() - 1);
+		tl.x = 0;
+		tl.y = 0;
+	}
+
+	return (*dll_glLoadIdentity)();
+}
+
+HOOK_OPENGL(glTranslatef, void, (GLfloat x, GLfloat y, GLfloat z)) {
+	if(matrixMode == GL_MODELVIEW) {
+		Tl &tl = tlStack.at(tlStack.size() - 1);
+		tl.x += x;
+		tl.y += y;
+	}
+
+	(*dll_glTranslatef)(x, y, z);
+}
+HOOK_OPENGL(glScalef, void, (GLfloat x, GLfloat y, GLfloat z)) {
+	return (*dll_glScalef)(x, y, z);
+}
+
+static std::map<unsigned long long, SDL::Coord *> coordsToBeFixed;
+static int glVertex2fNum = 0;
+
+HOOK_OPENGL(glVertex2f, void, (GLfloat x, GLfloat y)) {
+	if(glVertex2fNum++ % 4 == 0) {
+		if(currentUsedTexture != currentBoundTexture) {
+			currentUsedTexture = currentUsedTexture;
+
+			auto iter = SDL::texturesMap.find(currentBoundTexture);
+			if(iter != SDL::texturesMap.end()) {
+				unsigned long long hash = iter->second;
+				SDL::Coord & coord = SDL::lastFrameMap[hash];
+				Tl &tl = tlStack.at(tlStack.size() - 1);
+				coord.x = x + tl.x;
+				coord.y = y + tl.y;
+			}
 		}
 	}
-	
-	return (*dll_glTexCoord2f)(s, t);
+
+	return (*dll_glVertex2f)(x, y);
 }
 
 HOOK_OPENGL(glTexImage2D, void, (GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid *pixels)) {

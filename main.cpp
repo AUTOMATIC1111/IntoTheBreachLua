@@ -20,14 +20,12 @@ void setupHooks() {
 	sdl2Table[SDL_N_SDL_PollEvent] = (FARPROC) &SDL_PollEvent;
 
 	opengl32Table[OPENGL_N_glBindTexture] = (FARPROC) &glBindTexture;
-	opengl32Table[OPENGL_N_glTexCoord2f] = (FARPROC) &glTexCoord2f;
 	opengl32Table[OPENGL_N_glTexImage2D] = (FARPROC) &glTexImage2D;
 }
 
 #define SDL_GL_SwapWindow hook_SDL_GL_SwapWindow
 #define SDL_PollEvent hook_SDL_PollEvent
 #define glBindTexture hook_glBindTexture
-#define glTexCoord2f hook_glTexCoord2f
 #define glTexImage2D hook_glTexImage2D
 
 BOOL WINAPI DllMain(HINSTANCE hInst, DWORD reason, LPVOID);

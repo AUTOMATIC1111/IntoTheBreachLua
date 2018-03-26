@@ -1,33 +1,14 @@
-local resourceDat = sdl.resourceDat("resources/resource.dat")
-local resourceDatMtime = sdl.mtime("resources/resource.dat")
-local function checkResource()
-	local mtime = sdl.mtime("resources/resource.dat")
-	if resourceDatMtime ~= mtime then
-		resourceDatMtime = mtime
-		resourceDat:reload()
-	end
-end
+require('scripts/sdlext/serizalize')
+require('scripts/sdlext/extensions')
+require('scripts/ui/ui')
+require('scripts/sdlext/uieventloop')
+require('scripts/sdlext/modcontent')
+require('scripts/sdlext/pilotarrange')
 
-sdlext = {}
+sdlext.addModContent("Edit squads",function()
+	modApi.selectSquads()
+end)
 
-function sdlext.font(path,size)
-	checkResource()
-	
-	local blob = sdl.blobFromResourceDat(resourceDat,path)
-	if blob.length==0 then
-		return sdl.filefont(path, size)
-	end
-
-	return sdl.filefontFromBlob(blob,size)
-end
-
-function sdlext.surface(path)
-	checkResource()
-	
-	local blob = sdl.blobFromResourceDat(resourceDat,path)
-	if blob.length==0 then
-		return sdl.surface(path)
-	end
-	
-	return sdl.surfaceFromBlob(blob)
-end
+arrangePilotsButton = sdlext.addModContent("Arrange pilots",function()
+	showArrangePilotsUi()
+end)

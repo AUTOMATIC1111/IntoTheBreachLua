@@ -42,15 +42,22 @@ struct TextSettings {
 };
 
 struct Font {
-	std::unique_ptr<Gdiplus::Font> font;
+	Gdiplus::Font *font;
+	Gdiplus::FontFamily *family;
+
+	void setFont(Gdiplus::Font *f);
+
+	float ascent;
+	float descent;
 
 	Font();
+	~Font();
 	Font(const std::string &name, double size);
 
 	void defaults();
 
 	operator const Gdiplus::Font *() const {
-		return font.get();
+		return font;
 	}
 };
 
@@ -68,6 +75,7 @@ struct Surface {
 	GLuint textureId;
 	unsigned long long hash;
 	int width, height;
+	double x, y;
 
 	void setBitmap(Gdiplus::Bitmap *bitmap);
 	void setBitmap(HBITMAP hbitmap, int x, int y, int w, int h);
@@ -188,15 +196,18 @@ struct Timer {
 	int startTime;
 
 	int elapsed();
+	void reset();
 };
 
 int mousex();
 int mousey();
 
+struct Coord { GLdouble x; GLdouble y; Coord() { x = y = 0;  } };
+
 extern std::vector< DrawHook * > hookListDraw;
 extern std::vector< EventHook * > hookListEvents;
 extern std::map< GLuint, unsigned long long > texturesMap;
-extern std::map< unsigned long long, int > lastFrameMap;
+extern std::map< unsigned long long, Coord > lastFrameMap;
 
 }
 

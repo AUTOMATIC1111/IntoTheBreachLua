@@ -27,7 +27,7 @@ namespace SDL {
 std::vector< DrawHook * > hookListDraw;
 std::vector< EventHook * > hookListEvents;
 std::map< GLuint, unsigned long long > texturesMap;
-std::map< unsigned long long, int > lastFrameMap;
+std::map< unsigned long long, Coord > lastFrameMap;
 
 GLuint glTexture(unsigned char *pixelData, int w, int h) {
 	GLuint texture = 0;
@@ -93,12 +93,20 @@ Rect::Rect(int x, int y, int w, int h) {
 Font::Font() {
 	defaults();
 }
+Font::~Font() {
+	// this is a leak
+	// i have no idea how to handle font->GetFamily(family) without gdi crashing
+
+	//delete family;
+
+	delete font;
+}
 void Font::defaults() {
-	font.reset(new Gdiplus::Font(L"Arial", 12));
+	setFont(new Gdiplus::Font(L"Arial", 12));
 }
 
 Font::Font(const std::string &name, double size) {
-	font.reset(new Gdiplus::Font(s2ws(name).c_str(), (Gdiplus::REAL) size, Gdiplus::UnitPoint));
+	setFont(new Gdiplus::Font(s2ws(name).c_str(), (Gdiplus::REAL) size, Gdiplus::FontStyleRegular, Gdiplus::UnitPoint));
 }
 
 FileFont::FileFont(const Blob *blob, double size) {
@@ -126,10 +134,42 @@ void FileFont::init(double size) {
 
 	WCHAR familyName[LF_FACESIZE];
 	family.GetFamilyName(familyName);
-	Gdiplus::Font* newfont = new Gdiplus::Font(
-		familyName, (Gdiplus::REAL) size, Gdiplus::FontStyleRegular, Gdiplus::UnitPoint, &privateFontCollection
-	);
-	font.reset(newfont);
+
+	int styles[] = { Gdiplus::FontStyleRegular, Gdiplus::FontStyleBold, Gdiplus::FontStyleItalic, Gdiplus::FontStyleBoldItalic };
+	for(int i = 0; i < sizeof(styles)/sizeof(styles[0]); i++) {
+		if(family.IsStyleAvailable(styles[i])) {
+			Gdiplus::Font* newfont = new Gdiplus::Font(
+				familyName, (Gdiplus::REAL) size, Gdiplus::FontStyleBold, Gdiplus::UnitPoint, &privateFontCollection
+				);
+			setFont(newfont);
+			return;
+		}
+	}
+
+	defaults();
+}
+
+void Font::setFont(Gdiplus::Font *f) {
+	font = f;
+
+	family = new Gdiplus::FontFamily;
+	f->GetFamily(family);
+	
+	HWND hDesktopWnd = GetDesktopWindow();
+	HDC hDesktopDC = GetDC(hDesktopWnd);
+	HDC hCaptureDC = CreateCompatibleDC(hDesktopDC);
+	
+	Gdiplus::Graphics * graphics = new Gdiplus::Graphics(hCaptureDC);
+
+	float ascentPoints = f->GetSize() / family->GetEmHeight(f->GetStyle())*family->GetCellAscent(f->GetStyle());
+	float descentPoints = f->GetSize() / family->GetEmHeight(f->GetStyle())*family->GetCellDescent(f->GetStyle());
+	ascent = graphics->GetDpiY() / 72.0f * ascentPoints;
+	descent = graphics->GetDpiY() / 72.0f * descentPoints;
+
+	delete graphics;
+
+	ReleaseDC(hDesktopWnd, hDesktopDC);
+	DeleteDC(hCaptureDC);
 }
 
 void Surface::init() {
@@ -263,23 +303,28 @@ Surface::Surface(const Font * font, const TextSettings *settings, const std::str
 	HDC hDesktopDC = GetDC(hDesktopWnd);
 	HDC hCaptureDC = CreateCompatibleDC(hDesktopDC);
 
-	Gdiplus::Graphics graphics(hCaptureDC);
+	Gdiplus::Graphics * graphics = new Gdiplus::Graphics(hCaptureDC);
 	std::wstring s = s2ws(text);
 	Gdiplus::RectF layoutRect(0, 0, 2560, 1600);
 	Gdiplus::RectF boundRect;
 
-	graphics.MeasureString(s.c_str(), -1, *font, layoutRect, &boundRect);
+	graphics->MeasureString(s.c_str(), -1, *font, layoutRect, &boundRect);
 
 	Gdiplus::Color color = settings == NULL ?
 		Gdiplus::Color::White :
 		Gdiplus::Color::MakeARGB(settings->color.a, settings->color.r, settings->color.g, settings->color.b);
 
-	boundRect.Height = font->font->GetHeight(&graphics) + outline * 2;
+	boundRect.Height = font->ascent + font->descent + outline * 2;
 	boundRect.Width += outline * 2;
+
+	delete graphics;
 
 	Gdiplus::Bitmap bitmap((int) ceil(boundRect.Width), (int) ceil(boundRect.Height), PixelFormat32bppARGB);
 	Gdiplus::Graphics *g = Gdiplus::Graphics::FromImage(&bitmap);
 	Gdiplus::SolidBrush brush(color);
+
+//	Gdiplus::Pen pen(Gdiplus::Color(255, 255, 0, 0), 4.0f);
+//	g->DrawRectangle(&pen, 0, 0, (int)boundRect.Width, (int)boundRect.Height);
 
 	g->SetTextRenderingHint(antialias ?
 							Gdiplus::TextRenderingHintAntiAlias :
@@ -450,7 +495,21 @@ Surface::Surface() {
 }
 
 bool Surface::wasDrawn() {
-	return lastFrameMap.find(hash) != lastFrameMap.end();
+	auto iter = lastFrameMap.find(hash);
+
+	if(iter == lastFrameMap.end())
+		return false;
+
+/*	GLint mat[4];
+	glGetIntegerv(GL_VIEWPORT, mat);
+
+	x = iter->second.x * mat[2];
+	y = iter->second.y * mat[3];*/
+
+	x = iter->second.x;
+	y = iter->second.y;
+
+	return true;
 }
 
 SurfaceScreenshot::SurfaceScreenshot() {
@@ -477,6 +536,7 @@ void Screen::begin() {
 	int w, h;
 	SDL_GL_GetDrawableSize(window, &w, &h);
 
+	glViewport(0, 0, w, h);
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
@@ -652,11 +712,15 @@ int mousey() {
 }
 
 Timer::Timer() {
-	startTime = SDL_GetTicks();
+	reset();
 }
 
 int Timer::elapsed() {
 	return SDL_GetTicks() - startTime;
+}
+
+void Timer::reset() {
+	startTime = SDL_GetTicks();
 }
 
 }

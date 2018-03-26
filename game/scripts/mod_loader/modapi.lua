@@ -82,6 +82,16 @@ function modApi:resetModContent()
 		{"Frozen Titans","GuardMech", "MirrorMech", "IceMech"},
 		{"Hazardous Mechs","LeapMech", "UnstableTank", "NanoMech"},
 	}
+	self.squad_icon = {
+		"img/units/player/mech_punch_ns.png",
+		"img/units/player/mech_jet_ns.png",
+		"img/units/player/mech_laser_ns.png",
+		"img/units/player/mech_electric_ns.png",
+		"img/units/player/mech_judo_ns.png",
+		"img/units/player/mech_flame_ns.png",
+		"img/units/player/mech_guard_ns.png",
+		"img/units/player/mech_leap_ns.png",
+	}
 	self.squad_text = {
 		"Rift Walkers",
 		"These were the very first Mechs to fight against the Vek. They are efficient and reliable.",
@@ -98,10 +108,8 @@ function modApi:resetModContent()
 		"Steel Judoka",
 		"These Mechs specialize in positional manipulation to turn the Vek against each other.",
 		
-		
 		"Flame Behemoths",
 		"Invincible to flames, these Mechs aim to burn any threat to ashes.",
-		
 		
 		"Frozen Titans",
 		"These Titans rely on the Cryo Launcher, a powerful weapon that takes an experienced Pilot to master.",
@@ -112,16 +120,6 @@ function modApi:resetModContent()
 	
 	self.resourceDat = sdl.resourceDat("resources/resource.dat")
 	
-	self.squad_icon = {
-		"img/units/player/mech_punch_ns.png",
-		"img/units/player/mech_jet_ns.png",
-		"img/units/player/mech_laser_ns.png",
-		"img/units/player/mech_electric_ns.png",
-		"img/units/player/mech_judo_ns.png",
-		"img/units/player/mech_flame_ns.png",
-		"img/units/player/mech_guard_ns.png",
-		"img/units/player/mech_leap_ns.png",
-	}
 	self.nextTurnHooks = {}
 	self.missionUpdateHooks = {}
 	self.missionStartHooks = {}

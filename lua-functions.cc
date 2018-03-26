@@ -137,6 +137,10 @@ void installFunctions(lua_State *L) {
 		.beginNamespace("sdl")
 
 		.beginClass <SDL::Color>("color")
+		.addData("r", &SDL::Color::r)
+		.addData("g", &SDL::Color::g)
+		.addData("b", &SDL::Color::b)
+		.addData("a", &SDL::Color::a)
 		.endClass()
 
 		.deriveClass<SDL::Color, SDL::Color>("rgba")
@@ -188,6 +192,8 @@ void installFunctions(lua_State *L) {
 		.addConstructor <void(*) (const std::string & s)>()
 		.addFunction("w", &SDL::Surface::w)
 		.addFunction("h", &SDL::Surface::h)
+		.addData("x", &SDL::Surface::x, false)
+		.addData("y", &SDL::Surface::y, false)
 		.addFunction("wasDrawn", &SDL::Surface::wasDrawn)
 		.endClass()
 
@@ -262,6 +268,7 @@ void installFunctions(lua_State *L) {
 		.beginClass <SDL::Timer>("timer")
 		.addConstructor <void(*) ()>()
 		.addFunction("elapsed", &SDL::Timer::elapsed)
+		.addFunction("reset", &SDL::Timer::reset)
 		.endClass()
 
 		.beginNamespace("events")
